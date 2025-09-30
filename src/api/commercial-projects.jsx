@@ -6,7 +6,6 @@ export default function CommercialProjectsAdmin() {
   const [editingProject, setEditingProject] = useState(null);
   const [form, setForm] = useState({ name: "", location: "", image: "", description: "", status: "" });
 
-  // Fetch projects from API
   useEffect(() => {
     fetch("/api/commercial-projects")
       .then(res => res.json())
