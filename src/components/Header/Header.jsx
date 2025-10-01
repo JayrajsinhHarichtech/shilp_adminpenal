@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { IoSearch, IoCartOutline } from 'react-icons/io5';
-import { MdOutlineLightMode, MdOutlineMailOutline } from 'react-icons/md';
+import { IoSearch } from 'react-icons/io5';
+import { MdOutlineMailOutline } from 'react-icons/md';
 import { FaRegBell } from 'react-icons/fa';
 
-export default function Header() {
+export default function Header({ onSearch }) {
+  const [searchQuery, setSearchQuery] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [mailOpen, setMailOpen] = useState(false);
@@ -14,6 +15,17 @@ export default function Header() {
     localStorage.removeItem('token');
     setDropdownOpen(false);      
     navigate('/signin', { replace: true });   
+  };
+
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+    if (onSearch) onSearch(e.target.value); // send query to parent
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && onSearch) {
+      onSearch(searchQuery); // search on enter
+    }
   };
 
   const toggleMail = () => {
@@ -47,20 +59,16 @@ export default function Header() {
             type="text"
             placeholder="Search here..."
             className="ml-2 bg-transparent outline-none"
+            value={searchQuery}
+            onChange={handleSearch} // update state & send query to parent
+            onKeyDown={handleKeyPress} // search on enter
           />
         </div>
       </div>
 
       {/* Right side: Icons + User Dropdown */}
       <div className="flex items-center gap-3 relative">
-        {/* <button className="text-2xl p-2 rounded hover:bg-gray-200">
-          <MdOutlineLightMode />
-        </button>
-        <button className="text-2xl p-2 rounded hover:bg-gray-200">
-          <IoCartOutline />
-        </button> */}
-
-        {/* Mail Dropdown */}
+        {/* Mail */}
         <div className="relative">
           <button onClick={toggleMail} className="text-2xl p-2 rounded hover:bg-gray-200">
             <MdOutlineMailOutline />
@@ -80,7 +88,7 @@ export default function Header() {
           )}
         </div>
 
-        {/* Notifications Dropdown */}
+        {/* Notifications */}
         <div className="relative">
           <button onClick={toggleNotifications} className="text-2xl p-2 rounded hover:bg-gray-200">
             <FaRegBell />
@@ -110,18 +118,18 @@ export default function Header() {
             </div>
           </button>
           {dropdownOpen && (
-  <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
-    <Link to="/profile" className="block px-4 py-2 hover:bg-gray-100">Profile</Link>
-    <Link to="/account" className="block px-4 py-2 hover:bg-gray-100">My Account</Link>
-    <Link to="/settings" className="block px-4 py-2 hover:bg-gray-100">Settings</Link>
-    <button
-      onClick={handleLogout}
-      className="w-full px-4 py-2 text-left text-red-500 hover:bg-gray-100"
-    >
-      Logout
-    </button>
-  </div>
-)}
+            <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
+              <Link to="/profile" className="block px-4 py-2 hover:bg-gray-100">Profile</Link>
+              <Link to="/account" className="block px-4 py-2 hover:bg-gray-100">My Account</Link>
+              <Link to="/settings" className="block px-4 py-2 hover:bg-gray-100">Settings</Link>
+              <button
+                onClick={handleLogout}
+                className="w-full px-4 py-2 text-left text-red-500 hover:bg-gray-100"
+              >
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

@@ -1,3 +1,6 @@
+import { useState, useEffect } from "react";
+import { getDashboard, addDashboard, deleteDashboard } from "../../api/dashboard";
+
 const dashboardMetrics = [
   { label: "Total Projects", value: 12 },
   { label: "Ongoing Units", value: 632 },
@@ -6,21 +9,49 @@ const dashboardMetrics = [
   { label: "Years of Experience", value: 18 },
 ];
 
-const latestProjects = [
-  { name: "Shilp Aura", location: "Abhilasa - Sama Canal Road", image: "https://via.placeholder.com/300x200" },
-  { name: "Shilp Serene", location: "Chhani", image: "https://via.placeholder.com/300x200" },
-  { name: "Shilp 14", location: "Bodakdev, Ahmedabad", image: "https://via.placeholder.com/300x200" },
-];
-
 const testimonials = [
   { client: "Ajay Patel", feedback: "Recommended Shilp Group to our friends..." },
   { client: "Rahul Shah", feedback: "They made dream come true for us." },
 ];
 
-const Dashboard = () => {
+export default function Dashboard() {
+  const [projects, setProjects] = useState([]);
+  const [form, setForm] = useState({ name: "", location: "", image: null });
+  const [preview, setPreview] = useState(null);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    const data = await getDashboard();
+    setProjects(data);
+  };
+
+  const handleAdd = async () => {
+    if (!form.name || !form.location || !form.image) return;
+
+    const formData = new FormData();
+    formData.append("name", form.name);
+    formData.append("location", form.location);
+    formData.append("image", form.image);
+
+    const newItem = await addDashboard(formData);
+    setProjects([...projects, newItem]);
+
+    // Reset form and preview
+    setForm({ name: "", location: "", image: null });
+    setPreview(null);
+  };
+
+  const handleDelete = async (id) => {
+    await deleteDashboard(id);
+    setProjects(projects.filter((p) => p._id !== id));
+  };
+
   return (
     <div className="space-y-8">
-      {/* Metrics Cards */}
+      {/* Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {dashboardMetrics.map((m, idx) => (
           <div key={idx} className="bg-white rounded shadow p-6 text-center">
@@ -30,16 +61,74 @@ const Dashboard = () => {
         ))}
       </div>
 
+      {/* Add Project Form */}
+      <div className="flex gap-2 mb-4 items-center">
+        <input
+          placeholder="Name"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          className="border p-2 rounded"
+        />
+        <input
+          placeholder="Location"
+          value={form.location}
+          onChange={(e) => setForm({ ...form, location: e.target.value })}
+          className="border p-2 rounded"
+        />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            setForm({ ...form, image: file });
+            setPreview(URL.createObjectURL(file));
+          }}
+          className="border p-2 rounded"
+        />
+        <button
+          onClick={handleAdd}
+          className="bg-blue-600 text-white px-4 rounded"
+        >
+          Add
+        </button>
+
+        {/* Preview selected image */}
+        {preview && (
+          <img
+            src={preview}
+            alt="Preview"
+            className="w-20 h-20 object-cover border rounded"
+          />
+        )}
+      </div>
+
       {/* Latest Projects */}
       <div>
         <h2 className="text-2xl font-semibold mb-4">Latest Projects</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {latestProjects.map((proj, idx) => (
-            <div key={idx} className="bg-white rounded shadow overflow-hidden hover:shadow-lg">
-              <img src={proj.image} alt={proj.name} className="w-full h-40 object-cover" />
+          {projects.map((proj, idx) => (
+            <div
+              key={proj._id || idx}
+              className="bg-white rounded shadow overflow-hidden hover:shadow-lg relative"
+            >
+              <img
+                src={proj.image} // backend should return proper URL
+                alt={proj.name}
+                className="w-full h-40 object-cover"
+              />
               <div className="p-4">
                 <h3 className="text-xl font-semibold">{proj.name}</h3>
                 <p className="text-gray-600 mt-1">{proj.location}</p>
+              </div>
+
+              <div className="flex justify-end px-4 pb-3">
+                <button
+                  onClick={() => handleDelete(proj._id)}
+                  className="text-red-600 text-sm"
+                >
+                  Delete
+                </button>
               </div>
             </div>
           ))}
@@ -60,6 +149,4 @@ const Dashboard = () => {
       </div>
     </div>
   );
-};
-
-export default Dashboard;
+}

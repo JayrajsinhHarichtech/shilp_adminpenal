@@ -11,14 +11,14 @@ import Profile from "./pages/profile";
 import MyAccount from "./pages/myaccount";
 import Settings from "./pages/setting";
 
-import ProjectsPage from "./pages/ProjectsPage";
+
 import TestimonialsPage from "./pages/TestimonialsPage";
 import ProjectTreePage from "./pages/ProjectTreePage";
 import GeminiPage from "./pages/GeminiPage";
   
 import CommercialPage from "./pages/CommercialPage";
 import ResidentialPage from "./pages/ResidentialPage";
-import PlotsForm from "./components/project/plots/PlotsForm";
+import PlotsForm from "./pages/PlotsPage";
 
 function App() {
   const [collapsed, setCollapsed] = useState(false);

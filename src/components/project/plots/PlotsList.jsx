@@ -4,6 +4,8 @@ import { getPlots, deletePlot } from "../../../api/plotsApi";
 export default function PlotsList({ onEdit, refreshKey }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(""); 
+  const [isError, setIsError] = useState(false); 
 
   useEffect(() => {
     fetchItems();
@@ -23,17 +25,21 @@ export default function PlotsList({ onEdit, refreshKey }) {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this plot?")) return;
     try {
       await deletePlot(id);
+      setMessage("Plot deleted successfully!"); 
+      setIsError(false);
       fetchItems();
+      setTimeout(() => setMessage(""), 4000); 
     } catch (err) {
       console.error(err);
-      alert("Delete failed. Check console.");
+      setMessage("Delete failed. Check console.");
+      setIsError(true);
+      setTimeout(() => setMessage(""), 4000);
     }
   };
 
-  if (loading) return <p>Loading plots...</p>;
+  if (loading) return <p>Loading plots....</p>;
 
   return (
     <div>
@@ -54,26 +60,22 @@ export default function PlotsList({ onEdit, refreshKey }) {
               <div className="p-4">
                 <h3 className="font-semibold text-lg">{p.title}</h3>
                 <p className="text-sm text-gray-600 mt-2">{p.description}</p>
-
                 <div className="mt-4 flex gap-2">
-                  <button
-                    onClick={() => onEdit(p)}
-                    className="px-3 py-1 border rounded"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(p._id)}
-                    className="px-3 py-1 border rounded text-red-600"
-                  >
-                    Delete
-                  </button>
+                  <button onClick={() => onEdit(p)} className="px-3 py-1 border rounded">Edit</button>
+                  <button onClick={() => handleDelete(p._id)} className="px-3 py-1 border rounded text-red-600">Delete</button>
                 </div>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {message && (
+        <p className={`mt-4 text-sm font-medium ${isError ? "text-red-600" : "text-green-600"}`}>
+          {message}
+        </p>
+      )}
     </div>
   );
 }
+    

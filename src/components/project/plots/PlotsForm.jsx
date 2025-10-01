@@ -29,6 +29,12 @@ export default function PlotsForm({ selected, onSaved }) {
   };
 
   const handleSave = async () => {
+    if (!form.title.trim() || !form.description.trim()) {
+      setMessage("Title & Description are required!");
+      setIsError(true);
+      return;
+    }
+
     setLoading(true);
     setMessage("");
     setIsError(false);
@@ -59,9 +65,9 @@ export default function PlotsForm({ selected, onSaved }) {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage(selected ? "Plot updated!" : "Plot added!");
+        setMessage(selected ? "Plot updated successfully!" : "Plot added successfully!");
         setIsError(false);
-        onSaved();
+        onSaved(); // refresh parent list
         if (!selected) {
           setForm({ title: "", description: "", image: null });
           setPreview(null);
@@ -84,9 +90,7 @@ export default function PlotsForm({ selected, onSaved }) {
 
   return (
     <div className="bg-white shadow-md rounded-xl p-6 space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800">
-        {selected ? "Edit Plot" : "Add Plot"}
-      </h2>
+      <h2 className="text-2xl font-bold text-gray-800">{selected ? "Edit Plot" : "Add Plot"}</h2>
 
       <input
         type="text"
@@ -107,11 +111,7 @@ export default function PlotsForm({ selected, onSaved }) {
 
       <div className="flex flex-col items-center justify-center border rounded-lg p-4 bg-gray-50">
         {preview ? (
-          <img
-            src={preview}
-            alt="Plot Preview"
-            className="w-full max-h-80 object-cover rounded-lg mb-4"
-          />
+          <img src={preview} alt="Plot Preview" className="w-full max-h-80 object-cover rounded-lg mb-4" />
         ) : (
           <div className="text-gray-500 italic mb-4">No image uploaded yet</div>
         )}
@@ -126,11 +126,7 @@ export default function PlotsForm({ selected, onSaved }) {
         >
           {loading ? "Saving..." : selected ? "Update" : "Save"}
         </button>
-        {message && (
-          <p className={`text-sm font-medium ${isError ? "text-red-600" : "text-green-600"}`}>
-            {message}
-          </p>
-        )}
+        {message && <p className={`text-sm font-medium ${isError ? "text-red-600" : "text-green-600"}`}>{message}</p>}
       </div>
     </div>
   );
