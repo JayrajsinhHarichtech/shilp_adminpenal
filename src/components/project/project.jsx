@@ -13,8 +13,7 @@ export default function ProjectsPage() {
     API.get("/api/projects", { params: { type } })
       .then((res) => setItems(res.data))
       .catch((err) => console.error("Projects fetch error:", err))
-      .finally(() => setLoading(false));
-  }, [type]);
+      .finally(() => setLoading(false));  }, [type]);
 
   if (loading) {
     return (

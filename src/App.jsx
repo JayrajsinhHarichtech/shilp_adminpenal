@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Sidebar from "./components/Sidebar/Sidebar";
 import Header from "./components/Header/Header";
 
-// Pages
 import Dashboard from "./pages/DashboardPage";
 import HomePage from "./pages/HomePage";
 import AboutPage from "./pages/AboutPage";
@@ -12,11 +11,14 @@ import Profile from "./pages/profile";
 import MyAccount from "./pages/myaccount";
 import Settings from "./pages/setting";
 
-// Projects + Other Pages
 import ProjectsPage from "./pages/ProjectsPage";
 import TestimonialsPage from "./pages/TestimonialsPage";
 import ProjectTreePage from "./pages/ProjectTreePage";
 import GeminiPage from "./pages/GeminiPage";
+  
+import CommercialPage from "./pages/CommercialPage";
+import ResidentialPage from "./pages/ResidentialPage";
+import PlotsForm from "./components/project/plots/PlotsForm";
 
 function App() {
   const [collapsed, setCollapsed] = useState(false);
@@ -61,9 +63,9 @@ function App() {
                       <Route path="settings" element={<Settings />} />
 
                       {/* Projects Subroutes */}
-                      <Route path="projects/commercial" element={<ProjectsPage type="commercial" />} />
-                      <Route path="projects/residential" element={<ProjectsPage type="residential" />} />
-                      <Route path="projects/plots" element={<ProjectsPage type="plots" />} />
+                      <Route path="projects/commercial" element={<CommercialPage/>} />
+                      <Route path="projects/residential" element={<ResidentialPage />} />
+                      <Route path="projects/plots" element={<PlotsForm/>} />
 
                       {/* Other Sections */}
                       <Route path="testimonials" element={<TestimonialsPage />} />

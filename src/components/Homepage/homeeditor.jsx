@@ -1,24 +1,29 @@
 import { useState, useEffect } from "react";
-import api from "../../api/homepageapi";
 
 export default function HomeEditor() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [banners, setBanners] = useState([{ aboutText: "", image: null }]);
+
+  const [banners, setBanners] = useState([{ aboutText: "", image: null, preview: null }]);
   const [services, setServices] = useState([{ title: "", description: "", icon: "" }]);
-  const [testimonials, setTestimonials] = useState([{ name: "", text: "", image: null }]);
+  const [testimonials, setTestimonials] = useState([{ name: "", text: "", image: null, preview: null }]);
 
-  useEffect(() => {
-    api.get("/banner")
-      .then(res => {
-        const data = res.data;
-        if (data.banners) setBanners(data.banners.map(b => ({ aboutText: b.aboutText, image: null })));
-        if (data.services) setServices(data.services);
-        if (data.testimonials) setTestimonials(data.testimonials.map(t => ({ name: t.name, text: t.text, image: null })));
-      })
-      .catch(err => console.error(err));
-  }, []);
+useEffect(() => {
+  fetch("http://localhost:5000/api/banner")
+    .then(res => res.json())
+    .then(data => {
+      if (data.aboutText) {
+        setBanners([{
+          aboutText: data.aboutText,
+          image: null,
+          preview: data.imageUrl ? `http://localhost:5000${data.imageUrl}` : null
+        }]);
+      }
+    })
+    .catch(err => console.error(err));
+}, []);
 
+  // Handlers
   const handleBannerChange = (idx, key, value) => {
     const updated = [...banners];
     updated[idx][key] = value;
@@ -37,59 +42,71 @@ export default function HomeEditor() {
     setTestimonials(updated);
   };
 
-  const handleFileChange = (setter) => (e) => {
-    if (e.target.files && e.target.files[0]) setter(e.target.files[0]);
+  const handleFileChange = (setter, previewSetter) => (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setter(file);
+      previewSetter(URL.createObjectURL(file));
+    }
   };
 
+  // Save function
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
 
+    const token = localStorage.getItem("token");
+
     try {
-      const formData = new FormData();
-      
-      banners.forEach((b, idx) => {
-        formData.append(`banners[${idx}][aboutText]`, b.aboutText);
-        if (b.image) formData.append(`banners[${idx}][image]`, b.image);
-      });
+      // 1️⃣ Save banners
+      for (let b of banners) {
+        const formData = new FormData();
+        formData.append("aboutText", b.aboutText);
+        if (b.image) formData.append("image", b.image);
 
-      services.forEach((s, idx) => {
-        formData.append(`services[${idx}][title]`, s.title);
-        formData.append(`services[${idx}][description]`, s.description);
-        formData.append(`services[${idx}][icon]`, s.icon);
-      });
-
-      testimonials.forEach((t, idx) => {
-        formData.append(`testimonials[${idx}][name]`, t.name);
-        formData.append(`testimonials[${idx}][text]`, t.text);
-        if (t.image) formData.append(`testimonials[${idx}][image]`, t.image);
-      });
-
-      const token = localStorage.getItem("token");
-
-      const response = await fetch("http://localhost:5000/api/banner", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setMessage("Homepage updated successfully!");
-      } else {
-        setMessage(data.message || "Failed to update homepage.");
+        await fetch("http://localhost:5000/api/banner", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
       }
 
-      setTimeout(() => setMessage(""), 5000);
+      // 2️⃣ Save services
+      for (let s of services) {
+        const formData = new FormData();
+        formData.append("title", s.title);
+        formData.append("description", s.description);
+        formData.append("icon", s.icon);
 
+        await fetch("http://localhost:5000/api/banner", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
+      }
+
+      // 3️⃣ Save testimonials
+      for (let t of testimonials) {
+        const formData = new FormData();
+        formData.append("name", t.name);
+        formData.append("text", t.text);
+        if (t.image) formData.append("image", t.image);
+
+        await fetch("http://localhost:5000/api/banner", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
+      }
+
+      setMessage("Homepage updated successfully!");
     } catch (err) {
       console.error(err);
       setMessage("Failed to update homepage.");
-      setTimeout(() => setMessage(""), 5000);
     } finally {
       setLoading(false);
+      setTimeout(() => setMessage(""), 5000);
     }
   };
 
@@ -97,20 +114,25 @@ export default function HomeEditor() {
     <div className="p-6">
       <h1 className="text-3xl font-bold mb-6">HOME-PAGE</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
+
         {/* Banner Section */}
         {banners.map((b, idx) => (
           <div key={idx} className="bg-white p-4 rounded shadow space-y-2">
-            <h2 className="font-semibold">Banner </h2>
+            <h2 className="font-semibold">Banner</h2>
             <textarea
               placeholder="About Text"
               value={b.aboutText}
               onChange={(e) => handleBannerChange(idx, "aboutText", e.target.value)}
               className="border p-2 w-full"
             />
+            {b.preview && <img src={b.preview} alt="preview" className="w-full max-h-40 object-cover my-2" />}
             <input
               type="file"
               accept="image/*"
-              onChange={handleFileChange((file) => handleBannerChange(idx, "image", file))}
+              onChange={handleFileChange(
+                (file) => handleBannerChange(idx, "image", file),
+                (url) => handleBannerChange(idx, "preview", url)
+              )}
             />
           </div>
         ))}
@@ -163,10 +185,14 @@ export default function HomeEditor() {
                 onChange={(e) => handleTestimonialChange(idx, "text", e.target.value)}
                 className="border p-2 w-full"
               />
+              {t.preview && <img src={t.preview} alt="preview" className="w-full max-h-40 object-cover my-2" />}
               <input
                 type="file"
                 accept="image/*"
-                onChange={handleFileChange((file) => handleTestimonialChange(idx, "image", file))}
+                onChange={handleFileChange(
+                  (file) => handleTestimonialChange(idx, "image", file),
+                  (url) => handleTestimonialChange(idx, "preview", url)
+                )}
               />
             </div>
           ))}
