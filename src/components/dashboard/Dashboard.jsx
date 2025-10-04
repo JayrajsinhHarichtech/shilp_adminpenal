@@ -63,18 +63,18 @@ export default function Dashboard() {
       </div>
 
       {/* Add Project Form */}
-      <div className="flex gap-2 mb-4 items-center">
+      <div className="mb-4 space-y-2">
         <input
           placeholder="Name"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className="border p-2 rounded"
+          className="border p-2 rounded w-full"
         />
         <input
           placeholder="Location"
           value={form.location}
           onChange={(e) => setForm({ ...form, location: e.target.value })}
-          className="border p-2 rounded"
+          className="border p-2 rounded w-full"
         />
         <input
           type="file"
@@ -85,7 +85,7 @@ export default function Dashboard() {
             setForm({ ...form, image: file });
             setPreview(URL.createObjectURL(file));
           }}
-          className="border p-2 rounded"
+          className="border p-2 rounded w-full"
         />
         <button
           onClick={handleAdd}
@@ -111,7 +111,7 @@ export default function Dashboard() {
           {projects.map((proj, idx) => {
             const imageUrl = proj.image?.startsWith("http")
               ? proj.image
-              : `${API_URL}/${proj.image}`;
+              : `${API_URL}/uploads/${proj.image}`;
 
             return (
               <div

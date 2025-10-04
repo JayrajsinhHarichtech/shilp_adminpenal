@@ -16,6 +16,7 @@ import ResidentialPage from "./pages/ResidentialPage";
 import PlotsForm from "./pages/PlotsPage";
 import GeminiChatPage from "./components/gemini/GeminiChatPage";
 import AiHistoryPage from "./components/gemini/AiHistoryPage";
+import { UserProvider } from "./context/UserContext";
 
 const ProtectedLayout = ({ collapsed, setCollapsed }) => (
   <div className="flex h-screen bg-gray-100">
@@ -39,40 +40,51 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <Routes>
-        {/* Login */}
-        <Route
-          path="/signin"
-          element={
-            isLoggedIn ? (
-              <Navigate to="/dashboard" replace />
-            ) : (
-              <LoginPage onLogin={() => setIsLoggedIn(true)} />
-            )
-          }
-        />
-        
-        {/* Protected Layout */}
-        <Route path="/" element={isLoggedIn ? <ProtectedLayout collapsed={collapsed} setCollapsed={setCollapsed} /> : <Navigate to="/signin" replace />}>
-          <Route index element={<Dashboard />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="home" element={<HomePage />} />
-          <Route path="about" element={<AboutPage />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="account" element={<MyAccount />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="projects/commercial" element={<CommercialPage />} />
-          <Route path="projects/residential" element={<ResidentialPage />} />
-          <Route path="projects/plots" element={<PlotsForm />} />
-          <Route path="testimonials" element={<TestimonialsPage />} />
-          <Route path="project-tree" element={<ProjectTreePage />} />
-          <Route path="gemini-ai/chat" element={<GeminiChatPage />} />
-          <Route path="gemini-ai/history" element={<AiHistoryPage />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Route>
-      </Routes>
-    </Router>
+    <UserProvider>
+      <Router>
+        <Routes>
+          {/* Login */}
+          <Route
+            path="/signin"
+            element={
+              isLoggedIn ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <LoginPage onLogin={() => setIsLoggedIn(true)} />
+              )
+            }
+          />
+
+          {/* Protected Layout */}
+          <Route
+            path="/"
+            element={
+              isLoggedIn ? (
+                <ProtectedLayout collapsed={collapsed} setCollapsed={setCollapsed} />
+              ) : (
+                <Navigate to="/signin" replace />
+              )
+            }
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="home" element={<HomePage />} />
+            <Route path="about" element={<AboutPage />} />
+            <Route path="profile" element={<Profile />} /> {/* Profile context se connect hoga */}
+            <Route path="account" element={<MyAccount />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="projects/commercial" element={<CommercialPage />} />
+            <Route path="projects/residential" element={<ResidentialPage />} />
+            <Route path="projects/plots" element={<PlotsForm />} />
+            <Route path="testimonials" element={<TestimonialsPage />} />
+            <Route path="project-tree" element={<ProjectTreePage />} />
+            <Route path="gemini-ai/chat" element={<GeminiChatPage />} />
+            <Route path="gemini-ai/history" element={<AiHistoryPage />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Route>
+        </Routes>
+      </Router>
+    </UserProvider>
   );
 }
 

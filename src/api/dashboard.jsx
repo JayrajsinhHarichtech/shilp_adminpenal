@@ -1,19 +1,16 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/api/dashboard";
+const API = import.meta.env.VITE_API_URL + "/api/dashboard";
 
 export const getDashboard = async () => {
   const res = await axios.get(API);
   return res.data;
 };
 
-export const addDashboard = async (item) => {
-  const res = await axios.post(API, item);
-  return res.data;
-};
-
-export const updateDashboard = async (id, item) => {
-  const res = await axios.put(`${API}/${id}`, item);
+export const addDashboard = async (data) => {
+  const res = await axios.post(API, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return res.data;
 };
 

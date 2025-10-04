@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { IoSearch } from 'react-icons/io5';
-import { MdOutlineMailOutline } from 'react-icons/md';
-import { FaRegBell } from 'react-icons/fa';
+import React, { useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { IoSearch } from "react-icons/io5";
+import { MdOutlineMailOutline } from "react-icons/md";
+import { FaRegBell } from "react-icons/fa";
+import { UserContext } from "../../context/UserContext";
 
 export default function Header({ onSearch }) {
+  const { user } = useContext(UserContext);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -12,36 +15,36 @@ export default function Header({ onSearch }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    setDropdownOpen(false);      
-    navigate('/signin', { replace: true });   
+    localStorage.removeItem("token");
+    setDropdownOpen(false);
+    navigate("/signin", { replace: true });
   };
 
   const handleSearch = (e) => {
     setSearchQuery(e.target.value);
-    if (onSearch) onSearch(e.target.value); // send query to parent
+    if (onSearch) onSearch(e.target.value);
   };
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && onSearch) {
-      onSearch(searchQuery); // search on enter
+      onSearch(searchQuery);
     }
   };
 
   const toggleMail = () => {
-    setMailOpen(prev => !prev);
+    setMailOpen((prev) => !prev);
     setNotificationsOpen(false);
     setDropdownOpen(false);
   };
 
   const toggleNotifications = () => {
-    setNotificationsOpen(prev => !prev);
+    setNotificationsOpen((prev) => !prev);
     setMailOpen(false);
     setDropdownOpen(false);
   };
 
   const toggleUserDropdown = () => {
-    setDropdownOpen(prev => !prev);
+    setDropdownOpen((prev) => !prev);
     setMailOpen(false);
     setNotificationsOpen(false);
   };
@@ -60,13 +63,13 @@ export default function Header({ onSearch }) {
             placeholder="Search here..."
             className="ml-2 bg-transparent outline-none"
             value={searchQuery}
-            onChange={handleSearch} // update state & send query to parent
-            onKeyDown={handleKeyPress} // search on enter
+            onChange={handleSearch}
+            onKeyDown={handleKeyPress}
           />
         </div>
       </div>
 
-      {/* Right side: Icons + User Dropdown */}
+      {/* Right side: Mail + Notifications + User */}
       <div className="flex items-center gap-3 relative">
         {/* Mail */}
         <div className="relative">
@@ -111,17 +114,28 @@ export default function Header({ onSearch }) {
         {/* User Dropdown */}
         <div className="relative">
           <button onClick={toggleUserDropdown} className="flex items-center gap-2">
-            <img src="/Logo/shilp-logo.svg" alt="User" className="w-10 h-10 rounded-full border" />
+            <img
+              src={user?.avatar || "/default-avatar.png"}
+              alt="User"
+              className="w-10 h-10 rounded-full border"
+            />
             <div className="flex flex-col items-start">
-              <span className="text-sm font-semibold">Shilp</span>
-              <span className="text-xs text-gray-500">@shilp12</span>
+              <span className="text-sm font-semibold">{user?.firstName || "User"}</span>
+              <span className="text-xs text-gray-500">@{user?.username || "guest"}</span>
             </div>
           </button>
+
           {dropdownOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
-              <Link to="/profile" className="block px-4 py-2 hover:bg-gray-100">Profile</Link>
-              <Link to="/account" className="block px-4 py-2 hover:bg-gray-100">My Account</Link>
-              <Link to="/settings" className="block px-4 py-2 hover:bg-gray-100">Settings</Link>
+              <Link to="/profile" className="block px-4 py-2 hover:bg-gray-100">
+                Profile
+              </Link>
+              <Link to="/account" className="block px-4 py-2 hover:bg-gray-100">
+                My Account
+              </Link>
+              <Link to="/settings" className="block px-4 py-2 hover:bg-gray-100">
+                Settings
+              </Link>
               <button
                 onClick={handleLogout}
                 className="w-full px-4 py-2 text-left text-red-500 hover:bg-gray-100"

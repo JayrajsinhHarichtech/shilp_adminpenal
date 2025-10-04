@@ -1,25 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Avtar from "../../public/Logo/shilp-logo.svg";
-import Edit from "../../public/Logo/Edit.svg";
 import Camera from "../../public/Logo/Camera.png";
+import Edit from "../../public/Logo/Edit.svg";
+import { UserContext } from "../context/UserContext";
 
 export default function Profile() {
+  const { user, setUser } = useContext(UserContext);
+
   const [isEditing, setIsEditing] = useState(false);
-
-  const [profile, setProfile] = useState({
-    firstName: "Jayrajsinh",
-    lastName: "Jadav",
-    email: "jayrajsinhjadav261.com",
-    mobile: "9157783727",
-    state: "Gujarat",
-    city: "Ahmedabad",
-    pincode: "380034",
-    address: "Yorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    avatar: Avtar,
-  });
-
-  const [formData, setFormData] = useState(profile);
-  const [previewImage, setPreviewImage] = useState(profile.avatar);
+  const [formData, setFormData] = useState(user || {});
+  const [previewImage, setPreviewImage] = useState(user?.avatar || Avtar);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -34,9 +24,24 @@ export default function Profile() {
     }
   };
 
-  const saveChanges = () => {
-    setProfile(formData);
-    setIsEditing(false);
+  const saveChanges = async () => {
+    try {
+      const form = new FormData();
+      Object.keys(formData).forEach((key) => {
+        form.append(key, formData[key]);
+      });
+
+      const res = await fetch(`http://localhost:5000/api/profile`, {
+        method: "POST",
+        body: form,
+      });
+
+      const updated = await res.json();
+      setUser(updated);
+      setIsEditing(false);
+    } catch (err) {
+      console.error("Error saving profile:", err);
+    }
   };
 
   return (
@@ -67,11 +72,16 @@ export default function Profile() {
           <div className="flex items-center gap-6 pb-6">
             <div className="relative">
               <img
-                src={previewImage}
+                src={
+                  previewImage.startsWith("blob")
+                    ? previewImage
+                    : `http://localhost:5000${previewImage}`
+                }
                 alt="Avatar"
                 className="w-28 h-28 rounded-full object-cover"
               />
 
+              {/* Hidden file input */}
               <input
                 id="fileUpload"
                 type="file"
@@ -79,12 +89,16 @@ export default function Profile() {
                 className="hidden"
                 onChange={handleFileChange}
               />
-              <label
-                htmlFor="fileUpload"
-                className="absolute bottom-2 right-2 bg-white p-1 rounded-full shadow cursor-pointer"
-              >
-                <img src={Camera} alt="Camera" className="w-5 h-5" />
-              </label>
+
+              {/* Edit button */}
+              {isEditing && (
+                <label
+                  htmlFor="fileUpload"
+                  className="absolute bottom-2 right-2 bg-white p-1 rounded-full shadow cursor-pointer"
+                >
+                  <img src={Camera} alt="Camera" className="w-5 h-5" />
+                </label>
+              )}
             </div>
             <div>
               <h3 className="text-lg font-semibold text-black">
@@ -112,7 +126,9 @@ export default function Profile() {
                       <p className="text-gray-500">
                         {key.replace(/([A-Z])/g, " $1")}
                       </p>
-                      <p className="font-semibold text-black">{formData[key]}</p>
+                      <p className="font-semibold text-black">
+                        {formData[key]}
+                      </p>
                     </div>
                   )
               )}
@@ -124,28 +140,28 @@ export default function Profile() {
                 placeholder="First Name"
                 value={formData.firstName}
                 onChange={handleChange}
-                className="border border-gray-400 rounded-lg p-2 placeholder-gray-500 text-black"
+                className="border border-gray-400 rounded-lg p-2 text-black"
               />
               <input
                 name="lastName"
                 placeholder="Last Name"
                 value={formData.lastName}
                 onChange={handleChange}
-                className="border border-gray-400 rounded-lg p-2 placeholder-gray-500 text-black"
+                className="border border-gray-400 rounded-lg p-2 text-black"
               />
               <input
                 name="email"
                 placeholder="Email ID"
                 value={formData.email}
                 onChange={handleChange}
-                className="border border-gray-400 rounded-lg p-2 placeholder-gray-500 text-black"
+                className="border border-gray-400 rounded-lg p-2 text-black"
               />
               <input
                 name="mobile"
                 placeholder="Mobile No."
                 value={formData.mobile}
                 onChange={handleChange}
-                className="border border-gray-400 rounded-lg p-2 placeholder-gray-500 text-black"
+                className="border border-gray-400 rounded-lg p-2 text-black"
               />
               <select
                 name="state"
@@ -172,14 +188,14 @@ export default function Profile() {
                 placeholder="Enter Pincode"
                 value={formData.pincode}
                 onChange={handleChange}
-                className="border border-gray-400 rounded-lg p-2 placeholder-gray-500 text-black"
+                className="border border-gray-400 rounded-lg p-2 text-black"
               />
               <input
                 name="address"
                 placeholder="Enter Address"
                 value={formData.address}
                 onChange={handleChange}
-                className="border border-gray-400 rounded-lg p-2 placeholder-gray-500 text-black"
+                className="border border-gray-400 rounded-lg p-2 text-black"
               />
             </div>
           )}
