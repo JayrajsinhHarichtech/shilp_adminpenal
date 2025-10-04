@@ -21,7 +21,14 @@ const items = [
   },
   { label: "TESTIMONIALS", path: "/testimonials", icon: <IoIosContact /> },
   { label: "PROJECT TREE", path: "/project-tree", icon: <FaTree /> },
-  { label: "GEMINI AI TOOLS", path: "/gemini-ai", icon: <FaTools /> },
+  {
+    label: "GEMINI AI TOOLS",
+    icon: <FaTools />,
+    children: [
+      { label: "Chat", path: "/gemini-ai/chat" },
+      { label: "History", path: "/gemini-ai/history" },
+    ],
+  },
 ];
 
 export default function Sidebar({ collapsed, setCollapsed }) {
@@ -61,20 +68,37 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             return (
               <li key={idx} className="px-2 py-2 hover:bg-gray-700 rounded">
                 {hasChildren ? (
-                  <div
-                    className="flex items-center justify-between cursor-pointer px-2"
-                    onClick={() => toggleMenu(item.label)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">{item.icon}</span>
-                      {!collapsed && <span>{item.label}</span>}
+                  <>
+                    <div
+                      className="flex items-center justify-between cursor-pointer px-2"
+                      onClick={() => toggleMenu(item.label)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">{item.icon}</span>
+                        {!collapsed && <span>{item.label}</span>}
+                      </div>
+                      {!collapsed && (
+                        <span className="text-lg">
+                          {isOpen ? <IoChevronDown /> : <IoChevronForward />}
+                        </span>
+                      )}
                     </div>
-                    {!collapsed && (
-                      <span className="text-lg">
-                        {isOpen ? <IoChevronDown /> : <IoChevronForward />}
-                      </span>
+
+                    {isOpen && !collapsed && (
+                      <ul className="ml-8 mt-1 space-y-1">
+                        {item.children.map((child, cidx) => (
+                          <li key={cidx}>
+                            <Link
+                              to={child.path}
+                              className="block px-2 py-1 hover:bg-gray-600 rounded"
+                            >
+                              {child.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
                     )}
-                  </div>
+                  </>
                 ) : (
                   <Link
                     to={item.path}
@@ -83,21 +107,6 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                     <span className="text-xl">{item.icon}</span>
                     {!collapsed && <span>{item.label}</span>}
                   </Link>
-                )}
-
-                {hasChildren && isOpen && !collapsed && (
-                  <ul className="ml-8 mt-1 space-y-1">
-                    {item.children.map((child, cidx) => (
-                      <li key={cidx}>
-                        <Link
-                          to={child.path}
-                          className="block px-2 py-1 hover:bg-gray-600 rounded"
-                        >
-                          {child.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
                 )}
               </li>
             );

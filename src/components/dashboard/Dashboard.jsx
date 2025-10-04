@@ -19,6 +19,8 @@ export default function Dashboard() {
   const [form, setForm] = useState({ name: "", location: "", image: null });
   const [preview, setPreview] = useState(null);
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     loadData();
   }, []);
@@ -39,7 +41,6 @@ export default function Dashboard() {
     const newItem = await addDashboard(formData);
     setProjects([...projects, newItem]);
 
-    // Reset form and preview
     setForm({ name: "", location: "", image: null });
     setPreview(null);
   };
@@ -88,7 +89,7 @@ export default function Dashboard() {
         />
         <button
           onClick={handleAdd}
-          className="bg-blue-600 text-white px-4 rounded"
+          className="bg-gray-700 text-white px-4 rounded"
         >
           Add
         </button>
@@ -107,31 +108,37 @@ export default function Dashboard() {
       <div>
         <h2 className="text-2xl font-semibold mb-4">Latest Projects</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {projects.map((proj, idx) => (
-            <div
-              key={proj._id || idx}
-              className="bg-white rounded shadow overflow-hidden hover:shadow-lg relative"
-            >
-              <img
-                src={proj.image} // backend should return proper URL
-                alt={proj.name}
-                className="w-full h-40 object-cover"
-              />
-              <div className="p-4">
-                <h3 className="text-xl font-semibold">{proj.name}</h3>
-                <p className="text-gray-600 mt-1">{proj.location}</p>
-              </div>
+          {projects.map((proj, idx) => {
+            const imageUrl = proj.image?.startsWith("http")
+              ? proj.image
+              : `${API_URL}/${proj.image}`;
 
-              <div className="flex justify-end px-4 pb-3">
-                <button
-                  onClick={() => handleDelete(proj._id)}
-                  className="text-red-600 text-sm"
-                >
-                  Delete
-                </button>
+            return (
+              <div
+                key={proj._id || idx}
+                className="bg-white rounded shadow overflow-hidden hover:shadow-lg relative"
+              >
+                <img
+                  src={imageUrl}
+                  alt={proj.name}
+                  className="w-full h-40 object-cover"
+                />
+                <div className="p-4">
+                  <h3 className="text-xl font-semibold">{proj.name}</h3>
+                  <p className="text-gray-600 mt-1">{proj.location}</p>
+                </div>
+
+                <div className="flex justify-end px-4 pb-3">
+                  <button
+                    onClick={() => handleDelete(proj._id)}
+                    className="text-red-600 text-sm"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

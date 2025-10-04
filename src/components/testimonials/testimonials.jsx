@@ -1,62 +1,94 @@
-import React, { useEffect, useState } from "react";
-import API from "../../api/axios";
+import { useEffect, useState } from "react";
+import { getTestimonials, createTestimonial, deleteTestimonial } from "../../api/testimonialapi";
 
-export default function TestimonialsPage() {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function AdminTestimonials() {
+  const [testimonials, setTestimonials] = useState([]);
+  const [form, setForm] = useState({ name: "", designation: "", message: "", image: null });
 
   useEffect(() => {
-    API.get("/testimonials")
-      .then((res) => setItems(res.data))
-      .catch((err) => console.error("Testimonials fetch error:", err))
-      .finally(() => setLoading(false));
+    loadTestimonials();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="px-8 pt-32">
-        <h1 className="text-4xl font-extrabold mb-10 text-gray-800">Testimonials</h1>
-        <div className="text-gray-500 text-lg">Loading testimonials…</div>
-      </div>
-    );
-  }
+  const loadTestimonials = async () => {
+    const data = await getTestimonials();
+    setTestimonials(data);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await createTestimonial(form);
+    setForm({ name: "", designation: "", message: "", image: null });
+    loadTestimonials();
+  };
+
+  const handleDelete = async (id) => {
+    await deleteTestimonial(id);
+    loadTestimonials();
+  };
 
   return (
-    <section className="bg-gray-50 min-h-screen px-8 pt-32 pb-16">
-      <h1 className="text-5xl font-extrabold mb-14 text-center text-gray-800 tracking-tight">
-        What People Say About Us
-      </h1>
+    <div>
+      <h2 className="text-xl font-bold mb-4">Manage Testimonials</h2>
 
-      {items.length === 0 ? (
-        <p className="text-center text-gray-500 text-xl">
-          No testimonials available yet.
-        </p>
-      ) : (
-        <div className="space-y-10 max-w-6xl mx-auto">
-          {items.map((t) => (
-            <div
-              key={t._id}
-              className="bg-white rounded-3xl shadow-xl p-10 flex flex-col md:flex-row items-center md:items-start
-                         gap-10 transition-transform hover:-translate-y-1 hover:shadow-2xl"
-            >
+      {/* Form Section */}
+      <form onSubmit={handleSubmit} className="mb-6 flex flex-col gap-3 w-1/2">
+        <input
+          type="text"
+          placeholder="Name"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          required
+          className="border p-2 rounded"
+        />
+        <input
+          type="text"
+          placeholder="Designation"
+          value={form.designation}
+          onChange={(e) => setForm({ ...form, designation: e.target.value })}
+          required
+          className="border p-2 rounded"
+        />
+        <textarea
+          placeholder="Message"
+          value={form.message}
+          onChange={(e) => setForm({ ...form, message: e.target.value })}
+          required
+          className="border p-2 rounded"
+        />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setForm({ ...form, image: e.target.files[0] })}
+          className="border p-2 rounded"
+        />
+        <button type="submit" className="bg-gray-700 text-white py-2 px-4 rounded">
+          Add Testimonial
+        </button>
+      </form>
+
+      {/* List Section */}
+      <ul className="space-y-4">
+        {testimonials.map((t) => (
+          <li key={t._id} className="border p-4 rounded shadow">
+            <h4 className="font-bold text-lg">{t.name}</h4>
+            <p className="text-sm text-gray-600">{t.designation}</p>
+            <p className="mt-2">{t.message}</p>
+            {t.image && (
               <img
-                src={t.avatarUrl || "/uploads/default.png"}
+                src={`http://localhost:5000${t.image}`}
                 alt={t.name}
-                className="w-36 h-36 rounded-full object-cover border-4 border-indigo-100 flex-shrink-0"
+                className="mt-3 w-24 h-24 object-cover rounded"
               />
-              <div className="text-center md:text-left">
-                <h2 className="text-3xl font-semibold text-gray-900">{t.name}</h2>
-                {t.role && (
-                  <p className="text-xl text-indigo-600 font-medium mt-1">{t.role}</p>
-                )}
-                <p className="mt-6 text-gray-700 text-lg leading-relaxed max-w-3xl">
-                  “{t.message}”
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </section>
+            )}
+            <button
+              onClick={() => handleDelete(t._id)}
+              className="mt-3 bg-red-500 text-white py-1 px-3 rounded"
+            >
+              Delete
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

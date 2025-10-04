@@ -85,9 +85,9 @@ const AboutUsAdmin = () => {
   };
 
   return (
-    <div className="bg-white shadow-md rounded-xl p-6 space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800">Manage About Us</h2>
-
+      <div className="bg-white shadow-md rounded-xl p-6 space-y-6 pt-10">
+      <h2 className="text-2xl font-bold text-gray-800">MANAGE ABOUT-US</h2>
+     
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left Side - Text */}
         <div className="space-y-4">
@@ -164,7 +164,7 @@ const AboutUsAdmin = () => {
         <button
           onClick={handleSave}
           disabled={loading}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+          className="bg-gray-700 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
         >
           {loading ? "Saving..." : "Save"}
         </button>
@@ -175,6 +175,7 @@ const AboutUsAdmin = () => {
         )}
       </div>
     </div>
+  
   );
 };
 

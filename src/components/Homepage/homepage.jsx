@@ -59,7 +59,7 @@ export default function HomeEditor() {
         formData.append(`services[${idx}][description]`, s.description);
         formData.append(`services[${idx}][icon]`, s.icon);
       });
-
+      
       testimonials.forEach((t, idx) => {
         formData.append("testimonialsName[]", t.name);
         formData.append("testimonialsText[]", t.text);

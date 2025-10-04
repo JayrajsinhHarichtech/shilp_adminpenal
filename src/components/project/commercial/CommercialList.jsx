@@ -47,7 +47,7 @@ export default function CommercialList({ onEdit, refreshKey }) {
   if (loading) return <p>Loading projects...</p>;
 
   return (
-    <div>
+    <div className="p-6">
       <h2 className="text-2xl font-bold mb-5">Commercial Projects</h2>
       {items.length === 0 ? (
         <p className="text-gray-600">No projects found.</p>
