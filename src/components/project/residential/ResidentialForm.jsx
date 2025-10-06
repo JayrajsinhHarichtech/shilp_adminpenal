@@ -81,7 +81,7 @@ export default function ResidentialForm({ selected, onSaved }) {
   };
 
   return (
-    <div className="bg-white shadow-md rounded-xl p-6 space-y-6">
+     <div className="bg-white shadow-md rounded-xl p-6 space-y-6">  
       <h2 className="text-2xl font-bold text-gray-800">
         {selected ? "Edit Residential Project" : "Add Residential Project"}
       </h2>

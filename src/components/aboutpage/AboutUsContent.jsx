@@ -3,17 +3,10 @@ import React, { useState } from "react";
 const AboutUsAdmin = () => {
   const [about, setAbout] = useState({
     whoWeAre:
-      "Shilp Group is a leading real estate and construction company based in Ahmedabad, Gujarat. With a legacy of delivering premium residential and commercial properties, we are committed to providing world-class living and working spaces to our clients.",
-    vision:
-      "To be the most trusted and innovative real estate company, delivering exceptional value to our clients and stakeholders.",
-    mission:
-      "To create sustainable and high-quality developments that enhance the communities we serve, while maintaining the highest standards of integrity and professionalism.",
-    values: [
-      "Integrity and Transparency",
-      "Commitment to Quality",
-      "Customer-Centric Approach",
-      "Innovation and Excellence",
-      "Sustainability and Responsibility",
+    "",
+    vision:"",
+    mission:"",
+    values: [""
     ],
   });
 

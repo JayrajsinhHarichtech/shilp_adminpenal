@@ -30,5 +30,10 @@ export const updateResidential = async (id, data) => {
 };
 
 export const deleteResidential = async (id) => {
-  await axios.delete(`${API}/${id}`);
+  const token = localStorage.getItem("token");
+
+  await axios.delete(`${API}/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 };
+
