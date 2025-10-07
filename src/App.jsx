@@ -70,7 +70,7 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="home" element={<HomePage />} />
             <Route path="about" element={<AboutPage />} />
-            <Route path="profile" element={<Profile />} /> {/* Profile context se connect hoga */}
+            <Route path="profile" element={<Profile />} />
             <Route path="account" element={<MyAccount />} />
             <Route path="settings" element={<Settings />} />
             <Route path="projects/commercial" element={<CommercialPage />} />

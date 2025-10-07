@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function CommercialForm({ selected, onSaved }) {
   const [form, setForm] = useState({ title: "", description: "", image: null });
@@ -6,6 +7,7 @@ export default function CommercialForm({ selected, onSaved }) {
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (selected) {
@@ -37,17 +39,28 @@ export default function CommercialForm({ selected, onSaved }) {
       const formData = new FormData();
       formData.append("title", form.title);
       formData.append("description", form.description);
-      if (form.image) formData.append("file", form.image); 
+      if (form.image) formData.append("file", form.image);
 
       const token = localStorage.getItem("token");
 
+      if (!token) {
+        setMessage("Session expired. Please login again.");
+        setIsError(true);
+        setLoading(false);
+        navigate("/login");
+        return;
+      }
+
       let response;
       if (selected) {
-        response = await fetch(`http://localhost:5000/api/commercials/${selected._id}`, {
-          method: "PUT",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        });
+        response = await fetch(
+          `http://localhost:5000/api/commercials/${selected._id}`,
+          {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData,
+          }
+        );
       } else {
         response = await fetch("http://localhost:5000/api/commercials", {
           method: "POST",

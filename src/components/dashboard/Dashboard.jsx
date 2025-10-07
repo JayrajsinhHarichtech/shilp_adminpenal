@@ -20,7 +20,7 @@ const [form, setForm] = useState({ name: "", location: "", image: null });
 const [preview, setPreview] = useState(null);
 const [selectedImage, setSelectedImage] = useState(null);
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_URL;
 
 useEffect(() => {
 loadData();
@@ -57,11 +57,12 @@ const openImage = (url) => setSelectedImage(url);
 const closeImage = () => setSelectedImage(null);
 
 return ( <div className="space-y-8">
-{/* Metrics */} <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-{dashboardMetrics.map((m, idx) => ( <div key={idx} className="bg-white rounded shadow p-6 text-center"> <div className="text-3xl font-bold">{m.value}</div> <div className="text-gray-600 mt-2">{m.label}</div> </div>
+{/* Metrics */} 
+<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+{dashboardMetrics.map((m, idx) => ( <div key={idx} className="bg-white rounded shadow p-6 text-center">
+   <div className="text-3xl font-bold">{m.value}</div> <div className="text-gray-600 mt-2">{m.label}</div> </div>
 ))} </div>
 
-```
   {/* Add Project Form */}
   <div className="mb-4 flex flex-col space-y-3 w-full">
     <input

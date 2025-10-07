@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createResidential, updateResidential } from "../../../api/residentialApi";
 
 export default function ResidentialForm({ selected, onSaved }) {
   const [form, setForm] = useState({ title: "", description: "", image: null });
@@ -14,7 +15,14 @@ export default function ResidentialForm({ selected, onSaved }) {
         description: selected.description || "",
         image: null,
       });
-      setPreview(selected.imageUrl || null); 
+      setPreview(
+        selected.image?.startsWith("http")
+          ? selected.image
+          : `http://localhost:5000/${selected.image}`
+      );
+    } else {
+      setForm({ title: "", description: "", image: null });
+      setPreview(null);
     }
   }, [selected]);
 
@@ -22,7 +30,7 @@ export default function ResidentialForm({ selected, onSaved }) {
     const { name, value, files } = e.target;
     if (files) {
       setForm((f) => ({ ...f, [name]: files[0] }));
-      setPreview(URL.createObjectURL(files[0])); 
+      setPreview(URL.createObjectURL(files[0]));
     } else {
       setForm((f) => ({ ...f, [name]: value }));
     }
@@ -34,59 +42,32 @@ export default function ResidentialForm({ selected, onSaved }) {
     setIsError(false);
 
     try {
-      const formData = new FormData();
-      formData.append("title", form.title);
-      formData.append("description", form.description);
-      if (form.image) formData.append("image", form.image);
+      if (selected) await updateResidential(selected._id, form);
+      else await createResidential(form);
 
-      const token = localStorage.getItem("token");
+      setMessage(selected ? "Residential updated successfully!" : "Residential added successfully!");
+      setIsError(false);
+      onSaved();
 
-      let response;
-      if (selected) {
-        response = await fetch(`http://localhost:5000/api/residentials/${selected._id}`, {
-          method: "PUT",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        });
-      } else {
-        response = await fetch("http://localhost:5000/api/residentials", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        });
-      }
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setMessage(selected ? "Residential updated!" : "Residential added!");
-        setIsError(false);
-        onSaved(); 
-        setForm({ title: "", description: "", image: null });
-        setPreview(null);
-      } else {
-        setMessage(data.message || "Failed to save Residential.");
-        setIsError(true);
-      }
-
-      setTimeout(() => setMessage(""), 5000);
+      // reset form
+      setForm({ title: "", description: "", image: null });
+      setPreview(null);
     } catch (err) {
       console.error(err);
-      setMessage("Error saving Residential.");
+      setMessage("Failed to save Residential project.");
       setIsError(true);
-      setTimeout(() => setMessage(""), 5000);
     } finally {
       setLoading(false);
+      setTimeout(() => setMessage(""), 5000);
     }
   };
 
   return (
-     <div className="bg-white shadow-md rounded-xl p-6 space-y-6">  
+    <div className="bg-white shadow-md rounded-xl p-6 space-y-6">
       <h2 className="text-2xl font-bold text-gray-800">
         {selected ? "Edit Residential Project" : "Add Residential Project"}
       </h2>
 
-      {/* Title */}
       <input
         type="text"
         name="title"
@@ -97,7 +78,6 @@ export default function ResidentialForm({ selected, onSaved }) {
         required
       />
 
-      {/* Description */}
       <textarea
         name="description"
         placeholder="Description"
@@ -107,7 +87,6 @@ export default function ResidentialForm({ selected, onSaved }) {
         required
       />
 
-      {/* Image Upload */}
       <div className="flex flex-col items-center justify-center border rounded-lg p-4 bg-gray-50">
         {preview ? (
           <img
@@ -121,7 +100,6 @@ export default function ResidentialForm({ selected, onSaved }) {
         <input type="file" name="image" accept="image/*" onChange={handleChange} />
       </div>
 
-      {/* Buttons */}
       <div className="flex flex-col items-start md:items-end space-y-2">
         <button
           onClick={handleSave}
@@ -134,7 +112,7 @@ export default function ResidentialForm({ selected, onSaved }) {
           <p
             className={`text-sm font-medium ${
               isError ? "text-red-600" : "text-green-600"
-            }`} 
+            }`}
           >
             {message}
           </p>

@@ -6,6 +6,7 @@ export default function PlotsList({ onEdit, refreshKey }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(""); 
   const [isError, setIsError] = useState(false); 
+  const [modalImage, setModalImage] = useState(null);
 
   useEffect(() => {
     fetchItems();
@@ -48,25 +49,31 @@ export default function PlotsList({ onEdit, refreshKey }) {
         <p className="text-gray-600">No plots found.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((p) => (
-            <div key={p._id} className="bg-white rounded shadow overflow-hidden">
-              <div className="h-48 w-full bg-gray-100">
-                <img
-                  src={p.image?.startsWith("http") ? p.image : `http://localhost:5000${p.image}`}
-                  alt={p.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold text-lg">{p.title}</h3>
-                <p className="text-sm text-gray-600 mt-2">{p.description}</p>
-                <div className="mt-4 flex gap-2">
-                  <button onClick={() => onEdit(p)} className="px-3 py-1 border rounded">Edit</button>
-                  <button onClick={() => handleDelete(p._id)} className="px-3 py-1 border rounded text-red-600">Delete</button>
+          {items.map((p) => {
+            const imageUrl = p.image?.startsWith("http") ? p.image : `http://localhost:5000${p.image}`;
+            return (
+              <div key={p._id} className="bg-white rounded shadow overflow-hidden">
+                <div
+                  className="h-48 w-full bg-gray-100 cursor-pointer"
+                  onClick={() => setModalImage(imageUrl)}
+                >
+                  <img
+                    src={imageUrl}
+                    alt={p.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold text-lg">{p.title}</h3>
+                  <p className="text-sm text-gray-600 mt-2">{p.description}</p>
+                  <div className="mt-4 flex gap-2">
+                    <button onClick={() => onEdit(p)} className="px-3 py-1 border rounded">Edit</button>
+                    <button onClick={() => handleDelete(p._id)} className="px-3 py-1 border rounded text-red-600">Delete</button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -75,7 +82,21 @@ export default function PlotsList({ onEdit, refreshKey }) {
           {message}
         </p>
       )}
+
+      {/* Image Modal */}
+      {modalImage && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+          onClick={() => setModalImage(null)} 
+        >
+          <img
+            src={modalImage}
+            alt="Plot Full"
+            className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }
-    

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = import.meta.env.VITE_API_URL + "/api/dashboard";
+const API = import.meta.env.VITE_URL + "/api/dashboard";
 
 export const getDashboard = async () => {
   const res = await axios.get(API);
@@ -8,7 +8,7 @@ export const getDashboard = async () => {
 };
 
 export const addDashboard = async (data) => {
-  const res = await axios.post(API, data, {
+  const res = await axios.post(API, data, { 
     headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data;

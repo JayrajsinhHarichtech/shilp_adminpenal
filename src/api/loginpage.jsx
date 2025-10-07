@@ -5,6 +5,11 @@ const API = import.meta.env.VITE_API_URL;
 export async function loginUser(email, password) {
   try {
     const res = await axios.post(`${API}/login`, { email, password });
+
+    if (res.data.token) {
+      localStorage.setItem("token", res.data.token);
+    }
+
     return { success: true, data: res.data };
   } catch (error) {
     const msg = error.response?.data?.error || error.message || "Login failed!";
@@ -14,6 +19,7 @@ export async function loginUser(email, password) {
 
 export async function logoutUser() {
   try {
+    localStorage.removeItem("token");
     const res = await axios.post(`${API}/logout`);
     return { success: true, message: res.data.message };
   } catch (error) {
