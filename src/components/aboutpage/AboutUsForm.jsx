@@ -24,9 +24,6 @@ export default function AboutUsForm({ selected, onSaved }) {
         image: null,
       });
       setPreview(selected.image ? `http://localhost:5000${selected.image}` : null);
-    } else {
-      setForm({ whoWeAre: "", vision: "", mission: "", values: [""], image: null });
-      setPreview(null);
     }
   }, [selected]);
 
@@ -50,7 +47,6 @@ export default function AboutUsForm({ selected, onSaved }) {
     setLoading(true);
     setMessage("");
     setIsError(false);
-
     try {
       await createOrUpdateAboutUs(form);
       setMessage(selected ? "About Us updated!" : "About Us saved!");
@@ -68,9 +64,7 @@ export default function AboutUsForm({ selected, onSaved }) {
 
   return (
     <div className="bg-white shadow-md rounded-xl p-6 space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800">
-        {selected ? "Edit About Us" : "Add About Us"}
-      </h2>
+      <h2 className="text-2xl font-bold text-gray-800">{selected ? "Edit About Us" : "Add About Us"}</h2>
 
       <textarea
         name="whoWeAre"
@@ -78,25 +72,20 @@ export default function AboutUsForm({ selected, onSaved }) {
         value={form.whoWeAre}
         onChange={handleChange}
         className="w-full border p-2 rounded mb-3 h-20"
-        required
       />
-
       <textarea
         name="vision"
         placeholder="Vision"
         value={form.vision}
         onChange={handleChange}
         className="w-full border p-2 rounded mb-3 h-20"
-        required
       />
-
       <textarea
         name="mission"
         placeholder="Mission"
         value={form.mission}
         onChange={handleChange}
         className="w-full border p-2 rounded mb-3 h-20"
-        required
       />
 
       <div>
@@ -129,11 +118,7 @@ export default function AboutUsForm({ selected, onSaved }) {
         >
           {loading ? "Saving..." : selected ? "Update" : "Save"}
         </button>
-        {message && (
-          <p className={`text-sm font-medium ${isError ? "text-red-600" : "text-green-600"}`}>
-            {message}
-          </p>
-        )}
+        {message && <p className={`text-sm font-medium ${isError ? "text-red-600" : "text-green-600"}`}>{message}</p>}
       </div>
     </div>
   );

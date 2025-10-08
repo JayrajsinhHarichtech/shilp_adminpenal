@@ -19,15 +19,24 @@ export default function GeminiChatPage() {
       setMessages((prev) => [...prev, aiMessage]);
     } catch (err) {
       console.error(err);
-      setMessages((prev) => [...prev, { role: "ai", text: "AI failed to respond" }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: "ai", text: "AI failed to respond" },
+      ]);
     }
 
     setLoading(false);
     setInput("");
   };
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault(); 
+      sendMessage();
+    }
+  };
 
   return (
-    <div className="flex flex-col h-screen p-6 pt-20">
+    <div className="flex flex-col h-screen p-6 pt-3">
       <h1 className="text-2xl font-bold mb-4">Gemini AI Chat</h1>
 
       <div className="flex-1 overflow-y-auto border rounded p-4 mb-4 bg-gray-50">
@@ -35,11 +44,12 @@ export default function GeminiChatPage() {
           <div
             key={i}
             className={`mb-2 p-2 rounded ${
-              msg.role === "user" ? "bg-blue-100 text-right" : "bg-green-100 text-left"
+              msg.role === "user"
+                ? "bg-blue-100 text-right"
+                : "bg-green-100 text-left"
             }`}
-          >
-            {msg.text}
-          </div>
+            dangerouslySetInnerHTML={{ __html: msg.text }}
+          ></div>
         ))}
         {loading && <p className="text-gray-500">Thinking...</p>}
       </div>
@@ -49,6 +59,7 @@ export default function GeminiChatPage() {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Ask Gemini..."
           className="border p-2 flex-1 rounded"
         />

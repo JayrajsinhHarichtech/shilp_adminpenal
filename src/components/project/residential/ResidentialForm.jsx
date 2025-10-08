@@ -10,16 +10,8 @@ export default function ResidentialForm({ selected, onSaved }) {
 
   useEffect(() => {
     if (selected) {
-      setForm({
-        title: selected.title || "",
-        description: selected.description || "",
-        image: null,
-      });
-      setPreview(
-        selected.image?.startsWith("http")
-          ? selected.image
-          : `http://localhost:5000/${selected.image}`
-      );
+      setForm({ title: selected.title || "", description: selected.description || "", image: null });
+      setPreview(selected.image?.startsWith("http") ? selected.image : `http://localhost:5000/${selected.image}`);
     } else {
       setForm({ title: "", description: "", image: null });
       setPreview(null);
@@ -46,10 +38,7 @@ export default function ResidentialForm({ selected, onSaved }) {
       else await createResidential(form);
 
       setMessage(selected ? "Residential updated successfully!" : "Residential added successfully!");
-      setIsError(false);
       onSaved();
-
-      // reset form
       setForm({ title: "", description: "", image: null });
       setPreview(null);
     } catch (err) {
@@ -89,11 +78,7 @@ export default function ResidentialForm({ selected, onSaved }) {
 
       <div className="flex flex-col items-center justify-center border rounded-lg p-4 bg-gray-50">
         {preview ? (
-          <img
-            src={preview}
-            alt="Residential Preview"
-            className="w-full max-h-80 object-cover rounded-lg mb-4"
-          />
+          <img src={preview} alt="Residential Preview" className="w-full max-h-80 object-cover rounded-lg mb-4" />
         ) : (
           <div className="text-gray-500 italic mb-4">No image uploaded yet</div>
         )}
@@ -108,15 +93,7 @@ export default function ResidentialForm({ selected, onSaved }) {
         >
           {loading ? "Saving..." : selected ? "Update" : "Save"}
         </button>
-        {message && (
-          <p
-            className={`text-sm font-medium ${
-              isError ? "text-red-600" : "text-green-600"
-            }`}
-          >
-            {message}
-          </p>
-        )}
+        {message && <p className={`text-sm font-medium ${isError ? "text-red-600" : "text-green-600"}`}>{message}</p>}
       </div>
     </div>
   );
