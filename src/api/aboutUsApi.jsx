@@ -1,4 +1,5 @@
 import axios from "axios";
+
 const API = "http://localhost:5000/api/aboutus";
 
 export async function getAboutUs() {
@@ -6,18 +7,26 @@ export async function getAboutUs() {
   return res.data;
 }
 
-export async function createOrUpdateAboutUs(data) {
+export async function createOrUpdateAboutUs(form) {
   const token = localStorage.getItem("token");
+
   const formData = new FormData();
-  formData.append("whoWeAre", data.whoWeAre);
-  formData.append("vision", data.vision);
-  formData.append("mission", data.mission);
-  formData.append("values", JSON.stringify(data.values));
-  if (data.image) formData.append("image", data.image);
+  formData.append("whoWeAre", form.whoWeAre);
+  formData.append("vision", form.vision);
+  formData.append("mission", form.mission);
+  formData.append("values", JSON.stringify(form.values || []));
+
+  if (form.desktopBanner) formData.append("desktopBanner", form.desktopBanner);
+  if (form.mobileBanner) formData.append("mobileBanner", form.mobileBanner);
+  if (form.image) formData.append("image", form.image);
 
   const res = await axios.post(API, formData, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${token}`,
+    },
   });
+
   return res.data;
 }
 

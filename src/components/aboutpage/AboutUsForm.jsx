@@ -1,124 +1,97 @@
-import { useState, useEffect } from "react";
+"use client";
+import { useEffect, useState } from "react";
 import { createOrUpdateAboutUs } from "../../api/aboutUsApi";
+import axios from "axios";
 
-export default function AboutUsForm({ selected, onSaved }) {
+const API_BASE = "http://localhost:5000/api/aboutus";
+
+export default function AboutUsEditor() {
   const [form, setForm] = useState({
     whoWeAre: "",
-    vision: "",
-    mission: "",
-    values: [""],
-    image: null,
+    desktopBanner: null,
+    mobileBanner: null,
+    desktopPreview: null,
+    mobilePreview: null,
   });
-  const [preview, setPreview] = useState(null);
-  const [message, setMessage] = useState("");
-  const [isError, setIsError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    if (selected) {
-      setForm({
-        whoWeAre: selected.whoWeAre || "",
-        vision: selected.vision || "",
-        mission: selected.mission || "",
-        values: selected.values || [""],
-        image: null,
-      });
-      setPreview(selected.image ? `http://localhost:5000${selected.image}` : null);
-    }
-  }, [selected]);
+    const fetchAboutUs = async () => {
+      try {
+        const res = await axios.get(API_BASE);
+        if (res.data) {
+          const data = res.data;
+          setForm((prev) => ({
+            ...prev,
+            whoWeAre: data.whoWeAre || "",
+            desktopPreview: data.desktopBanner ? `http://localhost:5000${data.desktopBanner}` : null,
+            mobilePreview: data.mobileBanner ? `http://localhost:5000${data.mobileBanner}` : null,
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch existing AboutUs:", err);
+      }
+    };
+    fetchAboutUs();
+  }, []);
 
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (files) {
-      setForm((f) => ({ ...f, [name]: files[0] }));
-      setPreview(URL.createObjectURL(files[0]));
-    } else {
-      setForm((f) => ({ ...f, [name]: value }));
-    }
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    const file = files[0];
+    setForm((prev) => ({
+      ...prev,
+      [name]: file,
+      [`${name === "desktopBanner" ? "desktopPreview" : "mobilePreview"}`]: URL.createObjectURL(file),
+    }));
   };
 
-  const handleValueChange = (index, value) => {
-    const updated = [...form.values];
-    updated[index] = value;
-    setForm((f) => ({ ...f, values: updated }));
-  };
-
-  const handleSave = async () => {
+  const handleSubmit = async () => {
     setLoading(true);
-    setMessage("");
-    setIsError(false);
     try {
       await createOrUpdateAboutUs(form);
-      setMessage(selected ? "About Us updated!" : "About Us saved!");
-      setIsError(false);
-      onSaved();
+      setMessage("About Us updated successfully!");
     } catch (err) {
+      setMessage("Failed to update About Us.");
       console.error(err);
-      setMessage("Failed to save About Us.");
-      setIsError(true);
     } finally {
       setLoading(false);
-      setTimeout(() => setMessage(""), 5000);
     }
   };
 
   return (
-    <div className="bg-white shadow-md rounded-xl p-6 space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800">{selected ? "Edit About Us" : "Add About Us"}</h2>
+    <div className="p-6">
+      <h2 className="text-2xl font-semibold mb-4">About Us Editor</h2>
 
-      <textarea
-        name="whoWeAre"
-        placeholder="Who We Are"
-        value={form.whoWeAre}
-        onChange={handleChange}
-        className="w-full border p-2 rounded mb-3 h-20"
-      />
-      <textarea
-        name="vision"
-        placeholder="Vision"
-        value={form.vision}
-        onChange={handleChange}
-        className="w-full border p-2 rounded mb-3 h-20"
-      />
-      <textarea
-        name="mission"
-        placeholder="Mission"
-        value={form.mission}
-        onChange={handleChange}
-        className="w-full border p-2 rounded mb-3 h-20"
-      />
+      <div className="grid gap-4">
+        <label>Who We Are</label>
+        <textarea
+          value={form.whoWeAre}
+          onChange={(e) => setForm({ ...form, whoWeAre: e.target.value })}
+          className="border p-2 w-full rounded"
+        />
 
-      <div>
-        <label className="font-semibold">Core Values</label>
-        {form.values.map((val, idx) => (
-          <input
-            key={idx}
-            type="text"
-            value={val}
-            onChange={(e) => handleValueChange(idx, e.target.value)}
-            className="w-full border p-2 rounded mb-2"
-          />
-        ))}
-      </div>
-
-      <div className="flex flex-col items-center justify-center border rounded-lg p-4 bg-gray-50">
-        {preview ? (
-          <img src={preview} alt="Preview" className="w-full max-h-80 object-cover rounded-lg mb-4" />
-        ) : (
-          <div className="text-gray-500 italic mb-4">No image uploaded yet</div>
+        <label>Desktop Banner</label>
+        {form.desktopPreview && (
+          <img src={form.desktopPreview} alt="Desktop Preview" className="w-48 h-32 object-cover mb-2" />
         )}
-        <input type="file" name="image" accept="image/*" onChange={handleChange} />
-      </div>
+        <input type="file" name="desktopBanner" onChange={handleFileChange} />
 
-      <div className="flex flex-col items-start md:items-end space-y-2">
+        <label>Mobile Banner</label>
+        {form.mobilePreview && (
+          <img src={form.mobilePreview} alt="Mobile Preview" className="w-48 h-32 object-cover mb-2" />
+        )}
+        <input type="file" name="mobileBanner" onChange={handleFileChange} />
+
         <button
-          onClick={handleSave}
+          onClick={handleSubmit}
           disabled={loading}
-          className="bg-gray-700 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+          className="bg-blue-600 text-white py-2 px-4 rounded mt-4 hover:bg-blue-700"
         >
-          {loading ? "Saving..." : selected ? "Update" : "Save"}
+          {loading ? "Saving..." : "Save Changes"}
         </button>
-        {message && <p className={`text-sm font-medium ${isError ? "text-red-600" : "text-green-600"}`}>{message}</p>}
+
+        {message && <p className="mt-3 text-green-600">{message}</p>}
       </div>
     </div>
   );

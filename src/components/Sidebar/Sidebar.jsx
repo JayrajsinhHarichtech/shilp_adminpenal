@@ -1,29 +1,20 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { FaTools, FaHome, FaTree } from "react-icons/fa";
-import { RiBuilding2Fill } from "react-icons/ri";
+import { FaHome, FaTree, FaBuilding } from "react-icons/fa";
 import { BsPeopleFill } from "react-icons/bs";
-import { IoIosContact } from "react-icons/io";
-import { MdMenuOpen, MdOutlineMenu } from "react-icons/md";
+import { MdMenuOpen, MdOutlineMenu, MdArticle } from "react-icons/md";
 import { IoChevronDown, IoChevronForward } from "react-icons/io5";
+import { RiRobot2Line } from "react-icons/ri";
 
 const items = [
   { label: "HOME-PAGE", path: "/home", icon: <FaHome /> },
   { label: "ABOUT US", path: "/about", icon: <BsPeopleFill /> },
-  {
-    label: "PROJECT",
-    icon: <RiBuilding2Fill />,
-    children: [
-      { label: "COMMERCIAL", path: "/projects/commercial" },
-      { label: "RESIDENTIAL", path: "/projects/residential" },
-      { label: "PLOTS", path: "/projects/plots" },
-    ],
-  },
-  { label: "TESTIMONIALS", path: "/testimonials", icon: <IoIosContact /> },
+  { label: "PROJECTS", path: "/projects", icon: <FaBuilding /> },
+  { label: "BLOGS", path: "/blogs", icon: <MdArticle /> },
   { label: "PROJECT TREE", path: "/project-tree", icon: <FaTree /> },
   {
     label: "GEMINI AI TOOLS",
-    icon: <FaTools />,
+    icon: <RiRobot2Line  />,
     children: [
       { label: "Chat", path: "/gemini-ai/chat" },
       { label: "History", path: "/gemini-ai/history" },
@@ -45,32 +36,32 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     <aside
       className={`h-full ${
         collapsed ? "w-20" : "w-64"
-      } transition-all duration-300 bg-gray-800 text-white flex flex-col`}
+      } transition-all duration-300 bg-gray-800 text-white flex flex-col shadow-lg`}
     >
       {/* --- Top Section --- */}
-      <div className="p-4 flex items-center justify-between">
-        {!collapsed && <h1 className="text-xl font-bold">Admin Panel</h1>}
+      <div className="p-4 flex items-center justify-between border-b border-gray-700">
+        {!collapsed && <h1 className="text-lg font-semibold">Admin Panel</h1>}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="text-2xl p-2 rounded transition-all duration-200"
+          className="text-2xl p-2 rounded hover:bg-gray-700 transition"
         >
           {collapsed ? <MdOutlineMenu /> : <MdMenuOpen />}
         </button>
       </div>
 
       {/* --- Navigation --- */}
-      <nav className="flex-1 overflow-auto">
-        <ul>
+      <nav className="flex-1 overflow-auto py-2">
+        <ul className="space-y-1">
           {items.map((item, idx) => {
             const hasChildren = item.children && item.children.length > 0;
             const isOpen = openMenus[item.label];
 
             return (
-              <li key={idx} className="px-2 py-2 hover:bg-gray-700 rounded">
+              <li key={idx}>
                 {hasChildren ? (
                   <>
                     <div
-                      className="flex items-center justify-between cursor-pointer px-2"
+                      className="flex items-center justify-between cursor-pointer px-3 py-2 hover:bg-gray-700 rounded-md"
                       onClick={() => toggleMenu(item.label)}
                     >
                       <div className="flex items-center gap-3">
@@ -90,7 +81,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                           <li key={cidx}>
                             <Link
                               to={child.path}
-                              className="block px-2 py-1 hover:bg-gray-600 rounded"
+                              className="block px-2 py-1 text-sm hover:bg-gray-600 rounded-md"
                             >
                               {child.label}
                             </Link>
@@ -102,7 +93,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                 ) : (
                   <Link
                     to={item.path}
-                    className="flex items-center gap-3 px-2 py-2 hover:bg-gray-700 rounded"
+                    className="flex items-center gap-3 px-3 py-2 hover:bg-gray-700 rounded-md"
                   >
                     <span className="text-xl">{item.icon}</span>
                     {!collapsed && <span>{item.label}</span>}

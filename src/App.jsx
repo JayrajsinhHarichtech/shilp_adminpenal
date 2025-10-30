@@ -9,14 +9,14 @@ import LoginPage from "./app/signin/page";
 import Profile from "./pages/profile";
 import MyAccount from "./pages/myaccount";
 import Settings from "./pages/setting";
-import TestimonialsPage from "./pages/TestimonialsPage";
+// import TestimonialsPage from "./pages/TestimonialsPage";
 import ProjectTreePage from "./pages/ProjectTreePage";
-import CommercialPage from "./pages/CommercialPage";
-import ResidentialPage from "./pages/ResidentialPage";
-import PlotsForm from "./pages/PlotsPage";
 import GeminiChatPage from "./components/gemini/GeminiChatPage";
 import AiHistoryPage from "./components/gemini/AiHistoryPage";
 import { UserProvider } from "./context/UserContext";
+import Blogs from "./pages/blogspage";
+import ProjectPage from "./pages/projectpage";
+import Projects from "./pages/projectpage";
 
 const ProtectedLayout = ({ collapsed, setCollapsed }) => (
   <div className="flex h-screen bg-gray-100">
@@ -43,7 +43,7 @@ function App() {
     <UserProvider>
       <Router>
         <Routes>
-          {/* Login */}
+          {/* Login Route */}
           <Route
             path="/signin"
             element={
@@ -55,7 +55,7 @@ function App() {
             }
           />
 
-          {/* Protected Layout */}
+          {/* Protected Routes */}
           <Route
             path="/"
             element={
@@ -73,13 +73,15 @@ function App() {
             <Route path="profile" element={<Profile />} />
             <Route path="account" element={<MyAccount />} />
             <Route path="settings" element={<Settings />} />
-            <Route path="projects/commercial" element={<CommercialPage />} />
-            <Route path="projects/residential" element={<ResidentialPage />} />
-            <Route path="projects/plots" element={<PlotsForm />} />
-            <Route path="testimonials" element={<TestimonialsPage />} />
+            <Route path="projects" element={<ProjectPage />} />
+            <Route path="blogs" element={<Blogs />} />
+             <Route path="/projects/:category/:slug" element={<Projects />} />
+            {/* <Route path="testimonials" element={<TestimonialsPage />} /> */}
             <Route path="project-tree" element={<ProjectTreePage />} />
             <Route path="gemini-ai/chat" element={<GeminiChatPage />} />
             <Route path="gemini-ai/history" element={<AiHistoryPage />} />
+
+            {/* Catch-all redirect */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
         </Routes>

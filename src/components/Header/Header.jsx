@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { IoSearch } from "react-icons/io5";
+// import { IoSearch } from "react-icons/io5";
 import { MdOutlineMailOutline } from "react-icons/md";
 import { FaRegBell } from "react-icons/fa";
 import { UserContext } from "../../context/UserContext";
@@ -8,7 +8,7 @@ import { UserContext } from "../../context/UserContext";
 export default function Header({ onSearch }) {
   const { user } = useContext(UserContext);
 
-  const [searchQuery, setSearchQuery] = useState("");
+  // const [searchQuery, setSearchQuery] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [mailOpen, setMailOpen] = useState(false);
@@ -20,16 +20,16 @@ export default function Header({ onSearch }) {
     navigate("/signin", { replace: true });
   };
 
-  const handleSearch = (e) => {
-    setSearchQuery(e.target.value);
-    if (onSearch) onSearch(e.target.value);
-  };
+  // const handleSearch = (e) => {
+  //   setSearchQuery(e.target.value);
+  //   if (onSearch) onSearch(e.target.value);
+  // };
 
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter" && onSearch) {
-      onSearch(searchQuery);
-    }
-  };
+  // const handleKeyPress = (e) => {
+  //   if (e.key === "Enter" && onSearch) {
+  //     onSearch(searchQuery);
+  //   }
+  // };
 
   const toggleMail = () => {
     setMailOpen((prev) => !prev);
@@ -54,19 +54,19 @@ export default function Header({ onSearch }) {
       {/* Left side: Logo + Search */}
       <div className="flex items-center gap-4">
         <Link to="/" className="flex items-center gap-2">
-          <img src="/Logo/shilp-logo.svg" alt="Shilp Logo" className="h-12 w-12" />
+          <img src="/Logo/shilp-logo.svg" alt="Shilp Logo" className="h-20 w-20" />
         </Link>
-        <div className="flex items-center border rounded px-3 py-1 bg-gray-50">
-          <IoSearch className="text-gray-500 text-xl" />
-          <input
-            type="text"
-            placeholder="Search here..."
-            className="ml-2 bg-transparent outline-none"
-            value={searchQuery}
-            onChange={handleSearch}
-            onKeyDown={handleKeyPress}
-          />
-        </div>
+          {/* <div className="flex items-center border rounded px-3 py-1 bg-gray-50">
+            <IoSearch className="text-gray-500 text-xl" />
+            <input
+              type="text"
+              placeholder="Search here..."
+              className="ml-2 bg-transparent outline-none"
+              value={searchQuery}
+              onChange={handleSearch}
+              onKeyDown={handleKeyPress}
+            />
+          </div> */}
       </div>
 
       {/* Right side: Mail + Notifications + User */}
@@ -127,7 +127,7 @@ export default function Header({ onSearch }) {
 
           {dropdownOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
-              <Link to="/profile" className="block px-4 py-2 hover:bg-gray-100">
+              {/* <Link to="/profile" className="block px-4 py-2 hover:bg-gray-100">
                 Profile
               </Link>
               <Link to="/account" className="block px-4 py-2 hover:bg-gray-100">
@@ -135,7 +135,7 @@ export default function Header({ onSearch }) {
               </Link>
               <Link to="/settings" className="block px-4 py-2 hover:bg-gray-100">
                 Settings
-              </Link>
+              </Link> */}
               <button
                 onClick={handleLogout}
                 className="w-full px-4 py-2 text-left text-red-500 hover:bg-gray-100"
