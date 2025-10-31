@@ -99,7 +99,7 @@ export default function LoginPage({ onLogin }) {
         </form>
 
         {/* 🔹 Actions */}
-        <div className="flex justify-between mt-4">
+        {/* <div className="flex justify-between mt-4">
           <button
             onClick={handleForgot}
             className="text-gray-900 hover:underline"
@@ -112,7 +112,7 @@ export default function LoginPage({ onLogin }) {
           >
             Logout
           </button>
-        </div>
+        </div> */}
 
         {/* 🔹 Message */}
         {message && (

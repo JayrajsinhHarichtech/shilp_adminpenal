@@ -18,6 +18,7 @@ export default function Header({ onSearch }) {
     localStorage.removeItem("token");
     setDropdownOpen(false);
     navigate("/signin", { replace: true });
+    window.location.reload();
   };
 
   // const handleSearch = (e) => {
@@ -72,7 +73,7 @@ export default function Header({ onSearch }) {
       {/* Right side: Mail + Notifications + User */}
       <div className="flex items-center gap-3 relative">
         {/* Mail */}
-        <div className="relative">
+        {/* <div className="relative">
           <button onClick={toggleMail} className="text-2xl p-2 rounded hover:bg-gray-200">
             <MdOutlineMailOutline />
           </button>
@@ -89,10 +90,10 @@ export default function Header({ onSearch }) {
               </button>
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* Notifications */}
-        <div className="relative">
+        {/* <div className="relative">
           <button onClick={toggleNotifications} className="text-2xl p-2 rounded hover:bg-gray-200">
             <FaRegBell />
           </button>
@@ -109,7 +110,7 @@ export default function Header({ onSearch }) {
               </button>
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* User Dropdown */}
         <div className="relative">
@@ -121,7 +122,7 @@ export default function Header({ onSearch }) {
             />
             <div className="flex flex-col items-start">
               <span className="text-sm font-semibold">{user?.firstName || "User"}</span>
-              <span className="text-xs text-gray-500">@{user?.username || "guest"}</span>
+              <span className="text-xs text-gray-500">@{user?.username || "Admin"}</span>
             </div>
           </button>
 

@@ -172,7 +172,7 @@
           </div>
 
           {/* TESTIMONIALS */}
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             <h3 className="font-semibold">Testimonials</h3>
             {testimonials.map((t, idx) => (
               <div key={idx} className="border p-2 rounded space-y-2 relative">
@@ -188,10 +188,12 @@
             <button type="button" className="bg-blue-600 text-white py-1 px-3 rounded" onClick={() => handleAdd(testimonials, setTestimonials, { name: "", text: "", image: null, preview: null, imageUrl: "" })}>
               Add Testimonial
             </button>
-          </div>
+          </div> */}
+
+          
 
           {/* SERVICES */}
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <h3 className="font-semibold">Services</h3>
             {services.map((s, idx) => (
               <div key={idx} className="flex items-center gap-2 border p-2 rounded relative">
@@ -207,7 +209,7 @@
             <button type="button" className="bg-blue-600 text-white py-1 px-3 rounded" onClick={() => handleAdd(services, setServices, { title: "", description: "", icon: "" })}>
               Add Service
             </button>
-          </div>
+          </div> */}
 
           <div className="flex items-center gap-2">
             <button type="submit" disabled={loading} className="bg-gray-800 text-white py-2 px-4 rounded">

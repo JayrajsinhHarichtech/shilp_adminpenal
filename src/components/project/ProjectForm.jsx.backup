@@ -1,0 +1,659 @@
+import React, { useState, useEffect } from "react";
+
+const ProjectForm = ({
+  editingProject,
+  loading,
+  onSubmit,
+  onCancel,
+}) => {
+  // Initialize form state
+  const initialFormState = {
+    projectDetail: {
+      title: "",
+      typeOfProject: "",
+      shortAddress: "",
+      projectWorkStatus: "",
+      brochure: "",
+      projectStatus: "",
+    },
+    typeOfProject: "residential",
+    banner: {
+      banner: null,
+      mobileBanner: null,
+    },
+    aboutUs: {
+      description: [""],
+      image: null,
+    },
+    floorPlan: [],
+    projectImages: {
+      images: [],
+    },
+    amenities: [],
+    projectUpdates: [],
+    location: {
+      mapUrl: "",
+      address1: "",
+      address2: "",
+      city: "",
+      state: "",
+      zip: "",
+      country: "",
+    },
+    projectVideo: {
+      videoUrl: "",
+      title: "",
+    },
+  };
+
+  const [formData, setFormData] = useState(initialFormState);
+
+  // Update form when editingProject changes
+  useEffect(() => {
+    if (editingProject) {
+      setFormData({
+        projectDetail: editingProject.projectDetail || initialFormState.projectDetail,
+        typeOfProject: editingProject.typeOfProject || "residential",
+        banner: editingProject.banner || initialFormState.banner,
+        aboutUs: editingProject.aboutUs || initialFormState.aboutUs,
+        floorPlan: editingProject.floorPlan || [],
+        projectImages: editingProject.projectImages || initialFormState.projectImages,
+        amenities: editingProject.amenities || [],
+        projectUpdates: editingProject.projectUpdates || [],
+        location: editingProject.location || initialFormState.location,
+        projectVideo: editingProject.projectVideo || initialFormState.projectVideo,
+      });
+    } else {
+      setFormData(initialFormState);
+    }
+  }, [editingProject]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Create FormData object
+    const formDataToSend = new FormData();
+    
+    // Append JSON data
+    formDataToSend.append("data", JSON.stringify({
+      projectDetail: formData.projectDetail,
+      typeOfProject: formData.typeOfProject,
+      aboutUs: {
+        description: formData.aboutUs.description,
+      },
+      floorPlan: formData.floorPlan.map(fp => ({ title: fp.title, alt: fp.alt })),
+      projectImages: {
+        images: formData.projectImages.images.map(img => ({ alt: img.alt })),
+      },
+      amenities: formData.amenities.map(a => ({ title: a.title, alt: a.alt })),
+      projectUpdates: formData.projectUpdates.map(pu => ({ date: pu.date, title: pu.title })),
+      location: formData.location,
+      projectVideo: formData.projectVideo,
+    }));
+
+    // Append files
+    if (formData.banner.banner instanceof File) {
+      formDataToSend.append("banner", formData.banner.banner);
+    }
+    if (formData.banner.mobileBanner instanceof File) {
+      formDataToSend.append("mobileBanner", formData.banner.mobileBanner);
+    }
+    if (formData.aboutUs.image instanceof File) {
+      formDataToSend.append("aboutUsImage", formData.aboutUs.image);
+    }
+
+    // Append floor plan images
+    formData.floorPlan.forEach((fp, index) => {
+      if (fp.image instanceof File) {
+        formDataToSend.append(`floorPlanImage_${index}`, fp.image);
+      }
+    });
+
+    // Append project images
+    formData.projectImages.images.forEach((img, index) => {
+      if (img.image instanceof File) {
+        formDataToSend.append(`projectImage_${index}`, img.image);
+      }
+    });
+
+    // Append amenity icons
+    formData.amenities.forEach((amenity, index) => {
+      if (amenity.icon instanceof File) {
+        formDataToSend.append(`amenityIcon_${index}`, amenity.icon);
+      }
+    });
+
+    // Append project update images
+    formData.projectUpdates.forEach((update, index) => {
+      if (update.image instanceof File) {
+        formDataToSend.append(`projectUpdateImage_${index}`, update.image);
+      }
+    });
+
+    const success = await onSubmit(editingProject?._id, formDataToSend);
+    
+    if (success && !editingProject) {
+      // Reset form after successful creation
+      setFormData(initialFormState);
+      // Reset file inputs
+      const fileInputs = document.querySelectorAll('input[type="file"]');
+      fileInputs.forEach(input => input.value = "");
+    }
+  };
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white shadow-lg p-6 rounded-lg space-y-6"
+    >
+      {/* Form Header */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-bold">
+          {editingProject ? "Edit Project" : "Create New Project"}
+        </h2>
+        {editingProject && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+          >
+            Cancel Edit
+          </button>
+        )}
+      </div>
+
+      {/* Project Basic Details */}
+      <div className="border-t pt-4 space-y-4">
+        <h3 className="font-semibold text-lg">Basic Information</h3>
+        
+        <div>
+          <label className="block font-semibold mb-2">Project Title *</label>
+          <input
+            type="text"
+            value={formData.projectDetail.title}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                projectDetail: { ...formData.projectDetail, title: e.target.value }
+              })
+            }
+            placeholder="Enter project title"
+            className="w-full border border-gray-300 p-3 rounded focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block font-semibold mb-2">Project Type</label>
+            <select
+              value={form.typeOfProject}
+              onChange={(e) =>
+                handlers.handleSimpleChange("typeOfProject", e.target.value)
+              }
+              className="w-full border border-gray-300 p-3 rounded focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="commercial">Commercial</option>
+              <option value="residential">Residential</option>
+              <option value="plots">Plots</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-2">Project Status</label>
+            <input
+              type="text"
+              value={form.projectDetail.projectStatus}
+              onChange={(e) =>
+                handlers.handleFieldChange("projectDetail", "projectStatus", e.target.value)
+              }
+              placeholder="e.g., Ongoing, Completed"
+              className="w-full border border-gray-300 p-3 rounded focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block font-semibold mb-2">Short Address</label>
+          <input
+            type="text"
+            value={form.projectDetail.shortAddress}
+            onChange={(e) =>
+              handlers.handleFieldChange("projectDetail", "shortAddress", e.target.value)
+            }
+            placeholder="Brief address for display"
+            className="w-full border border-gray-300 p-3 rounded focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block font-semibold mb-2">Project Work Status</label>
+          <input
+            type="text"
+            value={form.projectDetail.projectWorkStatus}
+            onChange={(e) =>
+              handlers.handleFieldChange("projectDetail", "projectWorkStatus", e.target.value)
+            }
+            placeholder="Current work status"
+            className="w-full border border-gray-300 p-3 rounded focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block font-semibold mb-2">Brochure (PDF)</label>
+          <input
+            type="file"
+            accept="application/pdf"
+            onChange={(e) =>
+              handlers.handleFieldChange("projectDetail", "brochure", e.target.files[0])
+            }
+            className="w-full border border-gray-300 p-2 rounded"
+          />
+        </div>
+      </div>
+
+      {/* Banner Section */}
+      <div className="border-t pt-4 space-y-4">
+        <h3 className="font-semibold text-lg">Banners</h3>
+        
+        <div>
+          <label className="block font-semibold mb-2">Desktop Banner Images</label>
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={(e) => handlers.handleBannerImages(e.target.files)}
+            className="w-full border border-gray-300 p-2 rounded"
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            {form.banner.banner.length > 0
+              ? `${form.banner.banner.length} file(s) selected`
+              : "Select multiple images"}
+          </p>
+        </div>
+
+        <div>
+          <label className="block font-semibold mb-2">Mobile Banner</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => handlers.handleMobileBanner(e.target.files[0])}
+            className="w-full border border-gray-300 p-2 rounded"
+          />
+          {form.banner.mobileBanner && (
+            <p className="text-sm text-green-600 mt-1">
+              {form.banner.mobileBanner instanceof File
+                ? form.banner.mobileBanner.name
+                : "Image uploaded"}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* About Us Section */}
+      <div className="border-t pt-4 space-y-4">
+        <h3 className="font-semibold text-lg">About Section</h3>
+        
+        <div>
+          <label className="block font-semibold mb-2">About Image (Right Side)</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => handlers.handleAboutImage(e.target.files[0])}
+            className="w-full border border-gray-300 p-2 rounded"
+          />
+        </div>
+
+        <div>
+          <label className="block font-semibold mb-2">Description(s)</label>
+          {form.aboutUs.description.map((desc, index) => (
+            <div key={index} className="flex gap-2 mb-3">
+              <textarea
+                value={desc}
+                onChange={(e) =>
+                  handlers.handleAboutDescription(index, e.target.value)
+                }
+                placeholder="About description"
+                rows="3"
+                className="flex-1 border border-gray-300 p-3 rounded focus:ring-2 focus:ring-blue-500"
+              />
+              {form.aboutUs.description.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handlers.removeAboutDescription(index)}
+                  className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={handlers.addAboutDescription}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            + Add Description
+          </button>
+        </div>
+      </div>
+
+      {/* Floor Plans */}
+      <div className="border-t pt-4 space-y-4">
+        <h3 className="font-semibold text-lg">Floor Plans</h3>
+        {form.floorPlan.map((fp) => (
+          <div key={fp.id} className="border p-4 rounded space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <input
+                type="text"
+                placeholder="Floor Plan Title"
+                value={fp.title}
+                onChange={(e) =>
+                  handlers.handleFloorPlanChange(fp.id, "title", e.target.value)
+                }
+                className="border border-gray-300 p-3 rounded"
+              />
+              <input
+                type="text"
+                placeholder="Alt Text"
+                value={fp.alt}
+                onChange={(e) =>
+                  handlers.handleFloorPlanChange(fp.id, "alt", e.target.value)
+                }
+                className="border border-gray-300 p-3 rounded"
+              />
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  handlers.handleFloorPlanChange(fp.id, "image", e.target.files[0])
+                }
+                className="flex-1 border border-gray-300 p-2 rounded"
+              />
+              {form.floorPlan.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handlers.removeFloorPlan(fp.id)}
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={handlers.addFloorPlan}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          + Add Floor Plan
+        </button>
+      </div>
+
+      {/* Project Images */}
+      <div className="border-t pt-4 space-y-4">
+        <h3 className="font-semibold text-lg">Project Images</h3>
+        {form.projectImages.images.map((img) => (
+          <div key={img.id} className="border p-4 rounded space-y-3">
+            <input
+              type="text"
+              placeholder="Image Alt Text"
+              value={img.alt}
+              onChange={(e) =>
+                handlers.handleProjectImageChange(img.id, "alt", e.target.value)
+              }
+              className="w-full border border-gray-300 p-3 rounded"
+            />
+            <div className="flex gap-2">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  handlers.handleProjectImageChange(img.id, "image", e.target.files[0])
+                }
+                className="flex-1 border border-gray-300 p-2 rounded"
+              />
+              {form.projectImages.images.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handlers.removeProjectImage(img.id)}
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={handlers.addProjectImage}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          + Add Project Image
+        </button>
+      </div>
+
+      {/* Amenities */}
+      <div className="border-t pt-4 space-y-4">
+        <h3 className="font-semibold text-lg">Amenities</h3>
+        {form.amenities.map((amenity) => (
+          <div key={amenity.id} className="border p-4 rounded space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <input
+                type="text"
+                placeholder="Amenity Title"
+                value={amenity.title}
+                onChange={(e) =>
+                  handlers.handleAmenityChange(amenity.id, "title", e.target.value)
+                }
+                className="border border-gray-300 p-3 rounded"
+              />
+              <input
+                type="text"
+                placeholder="Alt Text"
+                value={amenity.alt}
+                onChange={(e) =>
+                  handlers.handleAmenityChange(amenity.id, "alt", e.target.value)
+                }
+                className="border border-gray-300 p-3 rounded"
+              />
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  handlers.handleAmenityChange(amenity.id, "icon", e.target.files[0])
+                }
+                className="flex-1 border border-gray-300 p-2 rounded"
+              />
+              {form.amenities.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handlers.removeAmenity(amenity.id)}
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={handlers.addAmenity}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          + Add Amenity
+        </button>
+      </div>
+
+      {/* Project Updates */}
+      <div className="border-t pt-4 space-y-4">
+        <h3 className="font-semibold text-lg">Project Updates</h3>
+        {form.projectUpdates.map((update) => (
+          <div key={update.id} className="border p-4 rounded space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <input
+                type="text"
+                placeholder="Update Title"
+                value={update.title}
+                onChange={(e) =>
+                  handlers.handleProjectUpdateChange(update.id, "title", e.target.value)
+                }
+                className="border border-gray-300 p-3 rounded"
+              />
+              <input
+                type="date"
+                value={update.date}
+                onChange={(e) =>
+                  handlers.handleProjectUpdateChange(update.id, "date", e.target.value)
+                }
+                className="border border-gray-300 p-3 rounded"
+              />
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) =>
+                  handlers.handleProjectUpdateImages(update.id, e.target.files)
+                }
+                className="flex-1 border border-gray-300 p-2 rounded"
+              />
+              {form.projectUpdates.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handlers.removeProjectUpdate(update.id)}
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+            <p className="text-sm text-gray-500">
+              {update.images.length > 0
+                ? `${update.images.length} image(s) selected`
+                : "No images selected"}
+            </p>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={handlers.addProjectUpdate}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          + Add Project Update
+        </button>
+      </div>
+
+      {/* Location */}
+      <div className="border-t pt-4 space-y-4">
+        <h3 className="font-semibold text-lg">Location</h3>
+        
+        <div>
+          <label className="block font-semibold mb-2">Google Map URL</label>
+          <input
+            type="url"
+            value={form.location.mapUrl}
+            onChange={(e) => handlers.handleLocationChange("mapUrl", e.target.value)}
+            placeholder="Google Maps embed link"
+            className="w-full border border-gray-300 p-3 rounded focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <input
+            type="text"
+            placeholder="Address Line 1"
+            value={form.location.address1}
+            onChange={(e) => handlers.handleLocationChange("address1", e.target.value)}
+            className="border border-gray-300 p-3 rounded"
+          />
+          <input
+            type="text"
+            placeholder="Address Line 2"
+            value={form.location.address2}
+            onChange={(e) => handlers.handleLocationChange("address2", e.target.value)}
+            className="border border-gray-300 p-3 rounded"
+          />
+          <input
+            type="text"
+            placeholder="City"
+            value={form.location.city}
+            onChange={(e) => handlers.handleLocationChange("city", e.target.value)}
+            className="border border-gray-300 p-3 rounded"
+          />
+          <input
+            type="text"
+            placeholder="State"
+            value={form.location.state}
+            onChange={(e) => handlers.handleLocationChange("state", e.target.value)}
+            className="border border-gray-300 p-3 rounded"
+          />
+          <input
+            type="text"
+            placeholder="ZIP Code"
+            value={form.location.zip}
+            onChange={(e) => handlers.handleLocationChange("zip", e.target.value)}
+            className="border border-gray-300 p-3 rounded"
+          />
+          <input
+            type="text"
+            placeholder="Country"
+            value={form.location.country}
+            onChange={(e) => handlers.handleLocationChange("country", e.target.value)}
+            className="border border-gray-300 p-3 rounded"
+          />
+        </div>
+      </div>
+
+      {/* Project Video */}
+      <div className="border-t pt-4 space-y-4">
+        <h3 className="font-semibold text-lg">Project Video</h3>
+        
+        <div>
+          <label className="block font-semibold mb-2">Video URL</label>
+          <input
+            type="url"
+            value={form.projectVideo.videoUrl}
+            onChange={(e) =>
+              handlers.handleFieldChange("projectVideo", "videoUrl", e.target.value)
+            }
+            placeholder="YouTube, Vimeo, etc."
+            className="w-full border border-gray-300 p-3 rounded focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block font-semibold mb-2">Video Title</label>
+          <input
+            type="text"
+            value={form.projectVideo.title}
+            onChange={(e) =>
+              handlers.handleFieldChange("projectVideo", "title", e.target.value)
+            }
+            placeholder="Video title"
+            className="w-full border border-gray-300 p-3 rounded focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+
+      {/* Submit Button */}
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+      >
+        {loading ? "Saving..." : form.id ? "Update Project" : "Create Project"}
+      </button>
+    </form>
+  );
+};
+
+export default ProjectForm;
