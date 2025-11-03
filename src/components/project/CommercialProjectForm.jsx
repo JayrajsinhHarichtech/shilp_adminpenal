@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 
 /**
- * Clean Admin Panel Project Form Component with Custom Color Scheme
+ * Commercial Project Form Component - Specialized for Commercial Properties
  */
-const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType = "residential" }) => {
+const CommercialProjectForm = ({ editingProject, loading, onSubmit, onCancel }) => {
   // Color scheme
   const colors = {
     darkBlue: '#00264D',    // Dark blue/navy
@@ -13,21 +13,29 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
     white: '#FFFFFF'        // White
   };
 
-  // Initial form state matching your structure
+  // Initial form state for commercial projects
   const getInitialState = () => ({
     slug: "",
-    typeOfProject: projectType,
+    typeOfProject: "commercial",
     banner: {
       banner: null,
       mobileBanner: null,
     },
     projectDetail: {
       title: "",
-      typeOfProject: projectType,
+      typeOfProject: "commercial",
       shortAddress: "",
       projectWorkStatus: "",
       brochure: null,
       projectStatus: "",
+      // Commercial specific fields
+      totalFloors: "",
+      parkingSpaces: "",
+      totalArea: "",
+      pricePerSqft: "",
+      commercialType: "office", // office, retail, warehouse, mixed-use
+      possessionDate: "",
+      approvals: "",
     },
     aboutUs: {
       description: [""],
@@ -38,6 +46,8 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
         title: "",
         alt: "",
         image: null,
+        area: "",
+        priceRange: "",
       },
     ],
     projectImages: {
@@ -48,6 +58,14 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
         title: "",
         icon: null,
         alt: "",
+      },
+    ],
+    // Commercial specific sections
+    specifications: [
+      {
+        title: "",
+        description: "",
+        icon: null,
       },
     ],
     projectUpdates: [
@@ -65,6 +83,10 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
       state: "",
       zip: "",
       country: "",
+      // Commercial location specifics
+      nearbyLandmarks: "",
+      connectivity: "",
+      businessDistrict: "",
     },
     projectVideo: {
       videoUrl: "",
@@ -77,22 +99,29 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
   // Load editing project data
   useEffect(() => {
     if (editingProject) {
-      console.log("🔍 Loading editing project data:", editingProject);
+      console.log("🏢 Loading commercial project data:", editingProject);
       
       setFormData({
         slug: editingProject.slug || "",
-        typeOfProject: editingProject.typeOfProject || projectType,
+        typeOfProject: "commercial",
         banner: {
           banner: editingProject.banner?.banner || null,
           mobileBanner: editingProject.banner?.mobileBanner || null,
         },
         projectDetail: {
           title: editingProject.projectDetail?.title || "",
-          typeOfProject: editingProject.projectDetail?.typeOfProject || projectType, 
+          typeOfProject: "commercial", 
           shortAddress: editingProject.projectDetail?.shortAddress || "",
           projectWorkStatus: editingProject.projectDetail?.projectWorkStatus || "",
           brochure: editingProject.projectDetail?.brochure || null,
           projectStatus: editingProject.projectDetail?.projectStatus || "",
+          totalFloors: editingProject.projectDetail?.totalFloors || "",
+          parkingSpaces: editingProject.projectDetail?.parkingSpaces || "",
+          totalArea: editingProject.projectDetail?.totalArea || "",
+          pricePerSqft: editingProject.projectDetail?.pricePerSqft || "",
+          commercialType: editingProject.projectDetail?.commercialType || "office",
+          possessionDate: editingProject.projectDetail?.possessionDate || "",
+          approvals: editingProject.projectDetail?.approvals || "",
         },
         aboutUs: {
           description: editingProject.aboutUs?.description || [""],
@@ -102,7 +131,9 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
           title: fp.title || "",
           alt: fp.alt || "",
           image: fp.image || null,
-        })) : [{ title: "", alt: "", image: null }],
+          area: fp.area || "",
+          priceRange: fp.priceRange || "",
+        })) : [{ title: "", alt: "", image: null, area: "", priceRange: "" }],
         projectImages: {
           images: editingProject.projectImages?.images?.length ? editingProject.projectImages.images.map(img => ({
             alt: img.alt || "",
@@ -114,20 +145,22 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
           icon: amenity.icon || null,
           alt: amenity.alt || "",
         })) : [{ title: "", icon: null, alt: "" }],
+        specifications: editingProject.specifications?.length ? editingProject.specifications.map(spec => ({
+          title: spec.title || "",
+          description: spec.description || "",
+          icon: spec.icon || null,
+        })) : [{ title: "", description: "", icon: null }],
         projectUpdates: editingProject.projectUpdates?.length ? editingProject.projectUpdates.map(update => ({
           date: update.date || "",
           title: update.title || "",
           image: update.image || null,
         })) : [{ date: "", title: "", image: null }],
-        location: editingProject.location || getInitialState().location,
+        location: {
+          ...getInitialState().location,
+          ...editingProject.location,
+        },
         projectVideo: editingProject.projectVideo || { videoUrl: "", title: "" },
       });
-      
-      console.log("🖼️ Loaded banner images:", {
-        banner: editingProject.banner?.banner,
-        mobileBanner: editingProject.banner?.mobileBanner
-      });
-      console.log("🖼️ Loaded about image:", editingProject.aboutUs?.image);
     } else {
       setFormData(getInitialState());
     }
@@ -199,7 +232,7 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
   const addFloorPlan = () => {
     setFormData({
       ...formData,
-      floorPlan: [...formData.floorPlan, { title: "", alt: "", image: null }],
+      floorPlan: [...formData.floorPlan, { title: "", alt: "", image: null, area: "", priceRange: "" }],
     });
   };
 
@@ -207,7 +240,7 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
     const newFloorPlans = formData.floorPlan.filter((_, i) => i !== index);
     setFormData({
       ...formData,
-      floorPlan: newFloorPlans.length ? newFloorPlans : [{ title: "", alt: "", image: null }],
+      floorPlan: newFloorPlans.length ? newFloorPlans : [{ title: "", alt: "", image: null, area: "", priceRange: "" }],
     });
   };
 
@@ -278,6 +311,28 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
     });
   };
 
+  // Handle specifications (commercial specific)
+  const handleSpecificationChange = (index, field, value) => {
+    const newSpecs = [...formData.specifications];
+    newSpecs[index] = { ...newSpecs[index], [field]: value };
+    setFormData({ ...formData, specifications: newSpecs });
+  };
+
+  const addSpecification = () => {
+    setFormData({
+      ...formData,
+      specifications: [...formData.specifications, { title: "", description: "", icon: null }],
+    });
+  };
+
+  const removeSpecification = (index) => {
+    const newSpecs = formData.specifications.filter((_, i) => i !== index);
+    setFormData({
+      ...formData,
+      specifications: newSpecs.length ? newSpecs : [{ title: "", description: "", icon: null }],
+    });
+  };
+
   // Handle project updates
   const handleProjectUpdateChange = (index, field, value) => {
     const newUpdates = [...formData.projectUpdates];
@@ -300,38 +355,31 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
     });
   };
 
-  // Enhanced Image/File preview component
+  // Enhanced Image/File preview component (same as original)
   const ImagePreview = ({ file, className = "" }) => {
     if (!file) return null;
     
-    // Helper function to get file icon based on type
     const getFileIcon = (fileName) => {
       const extension = fileName.toLowerCase().split('.').pop();
       switch (extension) {
-        case 'pdf':
-          return '📄';
+        case 'pdf': return '📄';
         case 'doc':
-        case 'docx':
-          return '📝';
+        case 'docx': return '📝';
         case 'jpg':
         case 'jpeg':
         case 'png':
         case 'gif':
-        case 'webp':
-          return '🖼️';
-        default:
-          return '📎';
+        case 'webp': return '🖼️';
+        default: return '📎';
       }
     };
 
-    // Check if file is an image
     const isImageFile = (fileName) => {
       const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
       const extension = fileName.toLowerCase().split('.').pop();
       return imageExtensions.includes(extension);
     };
     
-    // Handle File objects (newly uploaded)
     if (file instanceof File) {
       const isImage = isImageFile(file.name);
       
@@ -360,7 +408,6 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
           </div>
         );
       } else {
-        // For non-image files (PDF, DOC, etc.)
         return (
           <div className={`relative ${className}`}>
             <div className="group cursor-pointer">
@@ -386,9 +433,7 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
       }
     }
     
-    // Handle string URLs (existing files from server)
     if (typeof file === 'string' && (file.startsWith('http') || file.startsWith('/') || file.includes('.'))) {
-      // Check if it's an image URL
       const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
       const isImageUrl = imageExtensions.some(ext => file.toLowerCase().includes(ext));
       
@@ -401,7 +446,7 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                 alt="Preview" 
                 className="w-32 h-32 object-cover rounded-lg border-2 border-gray-300 shadow-md hover:shadow-lg transition-all duration-200 group-hover:scale-105"
                 onError={(e) => {
-                  e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NCA0NEg0NFY4NEg4NFY0NFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHN2Zz4K'; // Placeholder image
+                  e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04NCA0NEg0NFY4NEg4NFY0NFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHN2Zz4K';
                 }}
               />
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 rounded-lg transition-all duration-200"></div>
@@ -416,7 +461,6 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
           </div>
         );
       } else {
-        // For non-image URLs (PDF, DOC links, etc.)
         const fileName = file.split('/').pop() || 'Document';
         return (
           <div className={`relative ${className}`}>
@@ -445,7 +489,6 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
       }
     }
     
-    // Handle object with image property (some backend responses)
     if (typeof file === 'object' && file?.image) {
       return <ImagePreview file={file.image} className={className} />;
     }
@@ -461,24 +504,28 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
       return;
     }
 
-    console.log("🔍 Debug - editingProject:", editingProject);
-    console.log("🔍 Debug - editingProject._id:", editingProject?._id);
-    console.log("🔍 Debug - editingProject.id:", editingProject?.id);
-    console.log("Submitting project data:", formData);
+    console.log("🏢 Submitting commercial project data:", formData);
 
     // Create FormData object
     const submitData = new FormData();
 
-    // Prepare JSON data WITHOUT file objects
+    // Prepare JSON data
     const jsonData = {
       slug: formData.slug || undefined,
-      typeOfProject: formData.typeOfProject || projectType,
+      typeOfProject: "commercial",
       projectDetail: {
         title: formData.projectDetail.title,
-        typeOfProject: formData.projectDetail.typeOfProject || projectType,
+        typeOfProject: "commercial",
         shortAddress: formData.projectDetail.shortAddress,
         projectWorkStatus: formData.projectDetail.projectWorkStatus,
         projectStatus: formData.projectDetail.projectStatus,
+        totalFloors: formData.projectDetail.totalFloors,
+        parkingSpaces: formData.projectDetail.parkingSpaces,
+        totalArea: formData.projectDetail.totalArea,
+        pricePerSqft: formData.projectDetail.pricePerSqft,
+        commercialType: formData.projectDetail.commercialType,
+        possessionDate: formData.projectDetail.possessionDate,
+        approvals: formData.projectDetail.approvals,
       },
       aboutUs: {
         description: formData.aboutUs.description.filter(d => d.trim() !== ""),
@@ -488,6 +535,8 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
         .map(fp => ({
           title: fp.title,
           alt: fp.alt || undefined,
+          area: fp.area || undefined,
+          priceRange: fp.priceRange || undefined,
         })),
       projectImages: {
         images: formData.projectImages.images
@@ -502,13 +551,24 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
           title: a.title,
           alt: a.alt || undefined,
         })),
+      specifications: formData.specifications
+        .filter(s => s.title.trim() !== "")
+        .map(s => ({
+          title: s.title,
+          description: s.description || undefined,
+        })),
       projectUpdates: formData.projectUpdates
         .filter(u => u.title.trim() !== "" || u.date !== "")
         .map(u => ({
           date: u.date || undefined,
           title: u.title || undefined,
         })),
-      location: formData.location,
+      location: {
+        ...formData.location,
+        nearbyLandmarks: formData.location.nearbyLandmarks || undefined,
+        connectivity: formData.location.connectivity || undefined,
+        businessDistrict: formData.location.businessDistrict || undefined,
+      },
       projectVideo: {
         videoUrl: formData.projectVideo.videoUrl || undefined,
         title: formData.projectVideo.title || undefined,
@@ -518,70 +578,54 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
     // Add JSON data to FormData
     submitData.append('data', JSON.stringify(jsonData));
 
-    // 2. Add files separately with correct field names
-    
-    // Banner files
+    // Add files
     if (formData.banner.banner instanceof File) {
       submitData.append('banner', formData.banner.banner);
-      console.log("📎 Added banner file:", formData.banner.banner.name);
     }
     
     if (formData.banner.mobileBanner instanceof File) {
       submitData.append('mobileBanner', formData.banner.mobileBanner);
-      console.log("📎 Added mobile banner file:", formData.banner.mobileBanner.name);
     }
 
-    // Brochure file
     if (formData.projectDetail.brochure instanceof File) {
       submitData.append('brochure', formData.projectDetail.brochure);
-      console.log("📎 Added brochure file:", formData.projectDetail.brochure.name);
     }
 
-    // About Us image
     if (formData.aboutUs.image instanceof File) {
       submitData.append('aboutUsImage', formData.aboutUs.image);
-      console.log("📎 Added about us image:", formData.aboutUs.image.name);
     }
 
-    // Floor plan images
     formData.floorPlan.forEach((fp, index) => {
       if (fp.image instanceof File) {
         submitData.append('floorPlanImages', fp.image);
-        console.log(`📎 Added floor plan image ${index + 1}:`, fp.image.name);
       }
     });
 
-    // Project images
     formData.projectImages.images.forEach((img, index) => {
       if (img.image instanceof File) {
         submitData.append('projectImages', img.image);
-        console.log(`📎 Added project image ${index + 1}:`, img.image.name);
       }
     });
 
-    // Amenity icons
     formData.amenities.forEach((amenity, index) => {
       if (amenity.icon instanceof File) {
         submitData.append('amenityIcons', amenity.icon);
-        console.log(`📎 Added amenity icon ${index + 1}:`, amenity.icon.name);
       }
     });
 
-    // Project update images
+    formData.specifications.forEach((spec, index) => {
+      if (spec.icon instanceof File) {
+        submitData.append('specificationIcons', spec.icon);
+      }
+    });
+
     formData.projectUpdates.forEach((update, index) => {
       if (update.image instanceof File) {
         submitData.append('projectUpdateImages', update.image);
-        console.log(`📎 Added project update image ${index + 1}:`, update.image.name);
       }
     });
 
-    console.log("📦 FormData prepared with files");
-    console.log("📄 JSON data:", jsonData);
-
-    // Use either _id or id, whichever exists
     const projectId = editingProject?._id || editingProject?.id;
-    console.log("🔍 Final projectId being sent:", projectId);
-
     const success = await onSubmit(projectId, submitData);
 
     if (success && !editingProject) {
@@ -597,17 +641,10 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
       <div style={{backgroundColor: colors.darkBlue}} className="text-white px-6 py-4">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-xl font-medium">
-              {projectType === "plots" && "🏞️"} 
-              {projectType === "commercial" && "🏢"} 
-              {projectType === "residential" && "🏠"} 
-              {editingProject ? `Edit ${projectType.charAt(0).toUpperCase() + projectType.slice(1)} Project` : `Create New ${projectType.charAt(0).toUpperCase() + projectType.slice(1)} Project`}
+            <h2 className="text-xl font-medium flex items-center">
+              🏢 {editingProject ? "Edit Commercial Project" : "Create Commercial Project"}
             </h2>
-            <p className="text-gray-300 mt-1 text-sm">
-              {projectType === "plots" && "Land plots and development sites"}
-              {projectType === "commercial" && "Commercial properties, offices, retail spaces"}
-              {projectType === "residential" && "Residential apartments, villas, and housing"}
-            </p>
+            <p className="text-gray-300 mt-1 text-sm">Commercial properties, offices, retail spaces</p>
           </div>
           {editingProject && (
             <button
@@ -638,23 +675,8 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                   type="text"
                   value={formData.projectDetail.title}
                   onChange={(e) => handleChange("projectDetail", "title", e.target.value)}
-                  placeholder="Enter project title"
+                  placeholder="Enter commercial project title"
                   className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
-                  style={{
-                    ':focus': {
-                      outline: 'none',
-                      borderColor: colors.mediumBlue,
-                      boxShadow: `0 0 0 1px ${colors.mediumBlue}`
-                    }
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = colors.mediumBlue;
-                    e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
                   required
                 />
               </div>
@@ -665,49 +687,25 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                   type="text"
                   value={formData.slug}
                   onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                  placeholder="project-slug"
+                  placeholder="commercial-project-slug"
                   className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
-                  onFocus={(e) => {
-                    e.target.style.borderColor = colors.mediumBlue;
-                    e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
                 />
               </div>
 
               <div>
-                <label style={{color: colors.grey}} className="block text-sm font-medium mb-1">Project Type</label>
+                <label style={{color: colors.grey}} className="block text-sm font-medium mb-1">Commercial Type</label>
                 <select
-                  value={formData.typeOfProject}
-                  onChange={(e) => {
-                    const type = e.target.value;
-                    setFormData({
-                      ...formData,
-                      typeOfProject: type,
-                      projectDetail: { ...formData.projectDetail, typeOfProject: type },
-                    });
-                  }}
+                  value={formData.projectDetail.commercialType}
+                  onChange={(e) => handleChange("projectDetail", "commercialType", e.target.value)}
                   className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
-                  onFocus={(e) => {
-                    e.target.style.borderColor = colors.mediumBlue;
-                    e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                  disabled={projectType !== "residential"} // Disable if specific type is set
                 >
-                  <option value="residential">Residential</option>
-                  <option value="commercial">Commercial</option>
-                  <option value="plots">Plots</option>
+                  <option value="office">Office Space</option>
+                  <option value="retail">Retail Space</option>
+                  <option value="warehouse">Warehouse</option>
+                  <option value="mixed-use">Mixed Use</option>
+                  <option value="industrial">Industrial</option>
+                  <option value="it-park">IT Park</option>
                 </select>
-                {projectType !== "residential" && (
-                  <p className="text-xs text-gray-500 mt-1">Project type is locked for this category</p>
-                )}
               </div>
 
               <div>
@@ -716,16 +714,52 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                   type="text"
                   value={formData.projectDetail.shortAddress}
                   onChange={(e) => handleChange("projectDetail", "shortAddress", e.target.value)}
-                  placeholder="Near Airport, Mumbai"
+                  placeholder="Business District, City"
                   className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
-                  onFocus={(e) => {
-                    e.target.style.borderColor = colors.mediumBlue;
-                    e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{color: colors.grey}} className="block text-sm font-medium mb-1">Total Area (sq ft)</label>
+                <input
+                  type="text"
+                  value={formData.projectDetail.totalArea}
+                  onChange={(e) => handleChange("projectDetail", "totalArea", e.target.value)}
+                  placeholder="50,000 sq ft"
+                  className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
+                />
+              </div>
+
+              <div>
+                <label style={{color: colors.grey}} className="block text-sm font-medium mb-1">Total Floors</label>
+                <input
+                  type="number"
+                  value={formData.projectDetail.totalFloors}
+                  onChange={(e) => handleChange("projectDetail", "totalFloors", e.target.value)}
+                  placeholder="10"
+                  className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
+                />
+              </div>
+
+              <div>
+                <label style={{color: colors.grey}} className="block text-sm font-medium mb-1">Parking Spaces</label>
+                <input
+                  type="number"
+                  value={formData.projectDetail.parkingSpaces}
+                  onChange={(e) => handleChange("projectDetail", "parkingSpaces", e.target.value)}
+                  placeholder="100"
+                  className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
+                />
+              </div>
+
+              <div>
+                <label style={{color: colors.grey}} className="block text-sm font-medium mb-1">Price per Sq Ft</label>
+                <input
+                  type="text"
+                  value={formData.projectDetail.pricePerSqft}
+                  onChange={(e) => handleChange("projectDetail", "pricePerSqft", e.target.value)}
+                  placeholder="₹5,000"
+                  className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
                 />
               </div>
 
@@ -737,14 +771,6 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                   onChange={(e) => handleChange("projectDetail", "projectWorkStatus", e.target.value)}
                   placeholder="Under Construction"
                   className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
-                  onFocus={(e) => {
-                    e.target.style.borderColor = colors.mediumBlue;
-                    e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
                 />
               </div>
 
@@ -754,16 +780,29 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                   type="text"
                   value={formData.projectDetail.projectStatus}
                   onChange={(e) => handleChange("projectDetail", "projectStatus", e.target.value)}
-                  placeholder="Active"
+                  placeholder="Available"
                   className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
-                  onFocus={(e) => {
-                    e.target.style.borderColor = colors.mediumBlue;
-                    e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{color: colors.grey}} className="block text-sm font-medium mb-1">Possession Date</label>
+                <input
+                  type="date"
+                  value={formData.projectDetail.possessionDate}
+                  onChange={(e) => handleChange("projectDetail", "possessionDate", e.target.value)}
+                  className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
+                />
+              </div>
+
+              <div>
+                <label style={{color: colors.grey}} className="block text-sm font-medium mb-1">Approvals</label>
+                <input
+                  type="text"
+                  value={formData.projectDetail.approvals}
+                  onChange={(e) => handleChange("projectDetail", "approvals", e.target.value)}
+                  placeholder="RERA, Municipal Corporation"
+                  className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
                 />
               </div>
 
@@ -793,7 +832,6 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                   accept="image/*"
                   onChange={(e) => handleFileChange("banner", "banner", e.target.files[0])}
                   className="w-full border border-gray-300 px-3 py-2 rounded file:mr-4 file:py-1 file:px-3 file:rounded file:border-0"
-                  style={{'::file-selector-button': {backgroundColor: colors.lightBlue, color: colors.grey}}}
                 />
                 <ImagePreview file={formData.banner.banner} className="mt-2" />
               </div>
@@ -837,14 +875,6 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                       placeholder={`Paragraph ${index + 1}`}
                       rows="2"
                       className="flex-1 border border-gray-300 px-3 py-2 rounded transition-all"
-                      onFocus={(e) => {
-                        e.target.style.borderColor = colors.mediumBlue;
-                        e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                      }}
-                      onBlur={(e) => {
-                        e.target.style.borderColor = '#d1d5db';
-                        e.target.style.boxShadow = 'none';
-                      }}
                     />
                     {formData.aboutUs.description.length > 1 && (
                       <button
@@ -871,7 +901,7 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
 
           {/* Floor Plans */}
           <section className="border-b border-gray-200 pb-6">
-            <h3 style={{color: colors.darkBlue}} className="text-base font-medium mb-4">Floor Plans</h3>
+            <h3 style={{color: colors.darkBlue}} className="text-base font-medium mb-4">Floor Plans / Unit Plans</h3>
             
             {formData.floorPlan.map((plan, index) => (
               <div key={index} style={{backgroundColor: colors.lightBlue}} className="p-4 rounded-lg mb-3">
@@ -887,21 +917,13 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                     </button>
                   )}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                   <input
                     type="text"
                     value={plan.title}
                     onChange={(e) => handleFloorPlanChange(index, "title", e.target.value)}
-                    placeholder="Plan Title (2 BHK)"
+                    placeholder="Plan Title (Ground Floor)"
                     className="border border-gray-300 px-3 py-2 rounded transition-all"
-                    onFocus={(e) => {
-                      e.target.style.borderColor = colors.mediumBlue;
-                      e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#d1d5db';
-                      e.target.style.boxShadow = 'none';
-                    }}
                   />
                   <input
                     type="text"
@@ -909,14 +931,20 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                     onChange={(e) => handleFloorPlanChange(index, "alt", e.target.value)}
                     placeholder="Alt Text"
                     className="border border-gray-300 px-3 py-2 rounded transition-all"
-                    onFocus={(e) => {
-                      e.target.style.borderColor = colors.mediumBlue;
-                      e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#d1d5db';
-                      e.target.style.boxShadow = 'none';
-                    }}
+                  />
+                  <input
+                    type="text"
+                    value={plan.area}
+                    onChange={(e) => handleFloorPlanChange(index, "area", e.target.value)}
+                    placeholder="Area (sq ft)"
+                    className="border border-gray-300 px-3 py-2 rounded transition-all"
+                  />
+                  <input
+                    type="text"
+                    value={plan.priceRange}
+                    onChange={(e) => handleFloorPlanChange(index, "priceRange", e.target.value)}
+                    placeholder="Price Range"
+                    className="border border-gray-300 px-3 py-2 rounded transition-all"
                   />
                   <div>
                     <input
@@ -944,7 +972,6 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
           <section className="border-b border-gray-200 pb-6">
             <h3 style={{color: colors.darkBlue}} className="text-base font-medium mb-4">Project Images</h3>
             
-            {/* Multiple File Upload */}
             <div style={{backgroundColor: colors.lightBlue}} className="p-4 rounded-lg mb-4">
               <label style={{color: colors.grey}} className="block text-sm font-medium mb-2">
                 Upload Multiple Images
@@ -961,7 +988,6 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
               </p>
             </div>
 
-            {/* Display Selected Images */}
             <div className="space-y-3">
               {formData.projectImages.images.map((img, index) => (
                 <div key={index} style={{backgroundColor: colors.lightBlue}} className="p-4 rounded-lg">
@@ -982,14 +1008,6 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                       onChange={(e) => handleProjectImageChange(index, "alt", e.target.value)}
                       placeholder="Alt Text (optional)"
                       className="border border-gray-300 px-3 py-2 rounded transition-all"
-                      onFocus={(e) => {
-                        e.target.style.borderColor = colors.mediumBlue;
-                        e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                      }}
-                      onBlur={(e) => {
-                        e.target.style.borderColor = '#d1d5db';
-                        e.target.style.boxShadow = 'none';
-                      }}
                     />
                     <div className="flex items-center">
                       <ImagePreview file={img.image} className="mr-3" />
@@ -1011,14 +1029,12 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
               ))}
             </div>
 
-            {/* Show message if no images */}
             {formData.projectImages.images.length === 0 && (
               <div className="text-center py-8 text-gray-500">
                 <p>No images uploaded yet. Use the upload button above to add multiple images.</p>
               </div>
             )}
 
-            {/* Add Single Image Button (as backup) */}
             <button
               type="button"
               onClick={addProjectImage}
@@ -1031,7 +1047,7 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
 
           {/* Amenities */}
           <section className="border-b border-gray-200 pb-6">
-            <h3 style={{color: colors.darkBlue}} className="text-base font-medium mb-4">Amenities</h3>
+            <h3 style={{color: colors.darkBlue}} className="text-base font-medium mb-4">Amenities & Features</h3>
             
             {formData.amenities.map((amenity, index) => (
               <div key={index} style={{backgroundColor: colors.lightBlue}} className="p-4 rounded-lg mb-3">
@@ -1052,16 +1068,8 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                     type="text"
                     value={amenity.title}
                     onChange={(e) => handleAmenityChange(index, "title", e.target.value)}
-                    placeholder="Amenity Title"
+                    placeholder="24/7 Security, HVAC, Elevator"
                     className="border border-gray-300 px-3 py-2 rounded transition-all"
-                    onFocus={(e) => {
-                      e.target.style.borderColor = colors.mediumBlue;
-                      e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#d1d5db';
-                      e.target.style.boxShadow = 'none';
-                    }}
                   />
                   <input
                     type="text"
@@ -1069,14 +1077,6 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                     onChange={(e) => handleAmenityChange(index, "alt", e.target.value)}
                     placeholder="Alt Text"
                     className="border border-gray-300 px-3 py-2 rounded transition-all"
-                    onFocus={(e) => {
-                      e.target.style.borderColor = colors.mediumBlue;
-                      e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#d1d5db';
-                      e.target.style.boxShadow = 'none';
-                    }}
                   />
                   <div>
                     <input
@@ -1097,6 +1097,61 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
               className="text-white px-4 py-2 rounded hover:opacity-90 transition-opacity text-sm"
             >
               Add Amenity
+            </button>
+          </section>
+
+          {/* Specifications (Commercial Specific) */}
+          <section className="border-b border-gray-200 pb-6">
+            <h3 style={{color: colors.darkBlue}} className="text-base font-medium mb-4">Technical Specifications</h3>
+            
+            {formData.specifications.map((spec, index) => (
+              <div key={index} style={{backgroundColor: colors.lightBlue}} className="p-4 rounded-lg mb-3">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 style={{color: colors.grey}} className="font-medium text-sm">Specification {index + 1}</h4>
+                  {formData.specifications.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeSpecification(index)}
+                      className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition-colors text-sm"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <input
+                    type="text"
+                    value={spec.title}
+                    onChange={(e) => handleSpecificationChange(index, "title", e.target.value)}
+                    placeholder="Power Backup, Fire Safety"
+                    className="border border-gray-300 px-3 py-2 rounded transition-all"
+                  />
+                  <textarea
+                    value={spec.description}
+                    onChange={(e) => handleSpecificationChange(index, "description", e.target.value)}
+                    placeholder="Detailed description"
+                    rows="2"
+                    className="border border-gray-300 px-3 py-2 rounded transition-all"
+                  />
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleSpecificationChange(index, "icon", e.target.files[0])}
+                      className="border border-gray-300 px-3 py-2 rounded file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 w-full text-sm"
+                    />
+                    <ImagePreview file={spec.icon} className="mt-2" />
+                  </div>
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addSpecification}
+              style={{backgroundColor: colors.darkBlue}}
+              className="text-white px-4 py-2 rounded hover:opacity-90 transition-opacity text-sm"
+            >
+              Add Specification
             </button>
           </section>
 
@@ -1124,29 +1179,13 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                     value={update.date}
                     onChange={(e) => handleProjectUpdateChange(index, "date", e.target.value)}
                     className="border border-gray-300 px-3 py-2 rounded transition-all"
-                    onFocus={(e) => {
-                      e.target.style.borderColor = colors.mediumBlue;
-                      e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#d1d5db';
-                      e.target.style.boxShadow = 'none';
-                    }}
                   />
                   <input
                     type="text"
                     value={update.title}
                     onChange={(e) => handleProjectUpdateChange(index, "title", e.target.value)}
-                    placeholder="Update Title"
+                    placeholder="Construction Progress"
                     className="border border-gray-300 px-3 py-2 rounded transition-all"
-                    onFocus={(e) => {
-                      e.target.style.borderColor = colors.mediumBlue;
-                      e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#d1d5db';
-                      e.target.style.boxShadow = 'none';
-                    }}
                   />
                   <div>
                     <input
@@ -1183,14 +1222,6 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                   onChange={(e) => handleChange("location", "mapUrl", e.target.value)}
                   placeholder="https://maps.google.com/..."
                   className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
-                  onFocus={(e) => {
-                    e.target.style.borderColor = colors.mediumBlue;
-                    e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
                 />
               </div>
 
@@ -1202,14 +1233,6 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                   onChange={(e) => handleChange("location", "address1", e.target.value)}
                   placeholder="Street address"
                   className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
-                  onFocus={(e) => {
-                    e.target.style.borderColor = colors.mediumBlue;
-                    e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
                 />
               </div>
 
@@ -1219,16 +1242,8 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                   type="text"
                   value={formData.location.address2}
                   onChange={(e) => handleChange("location", "address2", e.target.value)}
-                  placeholder="Landmark, Area"
+                  placeholder="Business Park, Area"
                   className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
-                  onFocus={(e) => {
-                    e.target.style.borderColor = colors.mediumBlue;
-                    e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
                 />
               </div>
 
@@ -1240,14 +1255,6 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                   onChange={(e) => handleChange("location", "city", e.target.value)}
                   placeholder="City"
                   className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
-                  onFocus={(e) => {
-                    e.target.style.borderColor = colors.mediumBlue;
-                    e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
                 />
               </div>
 
@@ -1259,14 +1266,6 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                   onChange={(e) => handleChange("location", "state", e.target.value)}
                   placeholder="State"
                   className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
-                  onFocus={(e) => {
-                    e.target.style.borderColor = colors.mediumBlue;
-                    e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
                 />
               </div>
 
@@ -1278,14 +1277,6 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                   onChange={(e) => handleChange("location", "zip", e.target.value)}
                   placeholder="ZIP Code"
                   className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
-                  onFocus={(e) => {
-                    e.target.style.borderColor = colors.mediumBlue;
-                    e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
                 />
               </div>
 
@@ -1297,14 +1288,39 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                   onChange={(e) => handleChange("location", "country", e.target.value)}
                   placeholder="Country"
                   className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
-                  onFocus={(e) => {
-                    e.target.style.borderColor = colors.mediumBlue;
-                    e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{color: colors.grey}} className="block text-sm font-medium mb-1">Business District</label>
+                <input
+                  type="text"
+                  value={formData.location.businessDistrict}
+                  onChange={(e) => handleChange("location", "businessDistrict", e.target.value)}
+                  placeholder="CBD, IT Hub"
+                  className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
+                />
+              </div>
+
+              <div>
+                <label style={{color: colors.grey}} className="block text-sm font-medium mb-1">Connectivity</label>
+                <input
+                  type="text"
+                  value={formData.location.connectivity}
+                  onChange={(e) => handleChange("location", "connectivity", e.target.value)}
+                  placeholder="Metro, Highway access"
+                  className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label style={{color: colors.grey}} className="block text-sm font-medium mb-1">Nearby Landmarks</label>
+                <input
+                  type="text"
+                  value={formData.location.nearbyLandmarks}
+                  onChange={(e) => handleChange("location", "nearbyLandmarks", e.target.value)}
+                  placeholder="Airport, Shopping Mall, Hospital"
+                  className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
                 />
               </div>
             </div>
@@ -1323,14 +1339,6 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                   onChange={(e) => handleChange("projectVideo", "videoUrl", e.target.value)}
                   placeholder="YouTube/Vimeo URL"
                   className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
-                  onFocus={(e) => {
-                    e.target.style.borderColor = colors.mediumBlue;
-                    e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
                 />
               </div>
 
@@ -1340,16 +1348,8 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                   type="text"
                   value={formData.projectVideo.title}
                   onChange={(e) => handleChange("projectVideo", "title", e.target.value)}
-                  placeholder="Video Title"
+                  placeholder="Commercial Property Walkthrough"
                   className="w-full border border-gray-300 px-3 py-2 rounded transition-all"
-                  onFocus={(e) => {
-                    e.target.style.borderColor = colors.mediumBlue;
-                    e.target.style.boxShadow = `0 0 0 1px ${colors.mediumBlue}`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
                 />
               </div>
             </div>
@@ -1373,9 +1373,9 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
                 Saving...
               </span>
             ) : editingProject ? (
-              "Update Project"
+              "Update Commercial Project"
             ) : (
-              "Create Project"
+              "Create Commercial Project"
             )}
           </button>
 
@@ -1395,4 +1395,4 @@ const ProjectForm = ({ editingProject, loading, onSubmit, onCancel, projectType 
   );
 };
 
-export default ProjectForm;
+export default CommercialProjectForm;

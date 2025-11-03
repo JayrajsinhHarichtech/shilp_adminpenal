@@ -2,9 +2,7 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import Sidebar from "./components/Sidebar/Sidebar";
 import Header from "./components/Header/Header";
-import Dashboard from "./pages/DashboardPage";
 import HomePage from "./pages/HomePage";
-import AboutPage from "./pages/AboutPage";
 import LoginPage from "./app/signin/page";
 import Profile from "./pages/profile";
 import MyAccount from "./pages/myaccount";
@@ -17,6 +15,9 @@ import { UserProvider } from "./context/UserContext";
 import Blogs from "./pages/blogspage";
 import ProjectPage from "./pages/projectpage";
 import Projects from "./pages/projectpage";
+import PlotProjectsPage from "./pages/PlotProjectsPage";
+import CommercialProjectsPage from "./pages/CommercialProjectsPage";
+import ResidentialProjectsPage from "./pages/ResidentialProjectsPage";
 
 const ProtectedLayout = ({ collapsed, setCollapsed }) => (
   <div className="flex h-screen bg-gray-100">
@@ -48,7 +49,7 @@ function App() {
             path="/signin"
             element={
               isLoggedIn ? (
-                <Navigate to="/dashboard" replace />
+                <Navigate to="/home" replace />
               ) : (
                 <LoginPage onLogin={() => setIsLoggedIn(true)} />
               )
@@ -66,14 +67,15 @@ function App() {
               )
             }
           >
-            <Route index element={<Dashboard />} />
-            <Route path="dashboard" element={<Dashboard />} />
+            <Route index element={<HomePage />} />
             <Route path="home" element={<HomePage />} />
-            <Route path="about" element={<AboutPage />} />
             <Route path="profile" element={<Profile />} />
             <Route path="account" element={<MyAccount />} />
             <Route path="settings" element={<Settings />} />
             <Route path="projects" element={<ProjectPage />} />
+            <Route path="projects/plot" element={<PlotProjectsPage />} />
+            <Route path="projects/commercial" element={<CommercialProjectsPage />} />
+            <Route path="projects/residential" element={<ResidentialProjectsPage />} />
             <Route path="blogs" element={<Blogs />} />
              <Route path="/projects/:category/:slug" element={<Projects />} />
             {/* <Route path="testimonials" element={<TestimonialsPage />} /> */}
@@ -82,7 +84,7 @@ function App() {
             <Route path="gemini-ai/history" element={<AiHistoryPage />} />
 
             {/* Catch-all redirect */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/home" replace />} />
           </Route>
         </Routes>
       </Router>
