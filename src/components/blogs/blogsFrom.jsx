@@ -1,366 +1,716 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { 
+  createBlog, 
+  updateBlog, 
+  getFullImageUrl,
+  formatBlogData,
+  validateBlogData,
+  getBlogById
+} from "../../api/blogsApi";
 
-export default function BlogsPage() {
-  const [banner, setBanner] = useState({
-    desktopImage: null,
-    mobileImage: null,
-  });
-  const [bannerPreview, setBannerPreview] = useState({ desktop: null, mobile: null });
-  const [bannerLoading, setBannerLoading] = useState(false);
+export default function BlogsPage({ onSaved, editBlogId, onCancelEdit }) {
+  // Blog form state (banner is now integrated)
   const [form, setForm] = useState({
-    id: "",
-    image: null,
-    alt: "",
-    publish: "",
-    date: "",
+    // Banner Section (integrated)
+    bannerTitle: "",
+    bannerSubtitle: "",
+    bannerImage: null,
+    mobileBanner: null,
+    
+    // Main Content
+    mainTitle: "",
+    author: "",
+    blogDate: new Date().toISOString().split('T')[0],
+    blogImage: null,
+    blogDescription: "",
+    
+    // Nested Points Structure
+    points: [{
+      title: "",
+      description: "",
+      tagline: "",
+      subPoints: []
+    }],
+    
+    // SEO & Status
     url: "",
-    title: "",
-    desc: "",
-    points: [{ title: "", subtitle: "", image: null }],
+    metaDescription: "",
+    tags: [],
+    publish: "published", // Changed to "published" so blogs show immediately
+    featured: false
   });
-  const [preview, setPreview] = useState({ image: null, points: [null] });
+
+  // Preview state
+  const [preview, setPreview] = useState({
+    bannerImage: null,
+    mobileBanner: null,
+    blogImage: null
+  });
+
+  // Loading and editing states
+  const [loading, setLoading] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [message, setMessage] = useState("");
+
+  // Fetch blog data for editing
   useEffect(() => {
-    const fetchBanner = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/blogs/banner");
-        const data = await res.json();
-        if (data) {
-          setBanner({
-            desktopImage: data.desktopImage || null,
-            mobileImage: data.mobileImage || null,
+    if (editBlogId) {
+      const fetchBlogForEdit = async () => {
+        try {
+          const blog = await getBlogById(editBlogId);
+          
+          // Set form data with existing blog data
+          setForm({
+            bannerTitle: blog.banner?.bannerTitle || "",
+            bannerSubtitle: blog.banner?.bannerSubtitle || "",
+            bannerImage: null, // Keep as null, show preview from URL
+            mobileBanner: null, // Keep as null, show preview from URL
+            mainTitle: blog.mainTitle || "",
+            author: blog.author || "",
+            blogDate: blog.blogDate ? new Date(blog.blogDate).toISOString().split('T')[0] : "",
+            blogImage: null, // Keep as null, show preview from URL
+            blogDescription: blog.blogDescription || "",
+            points: blog.points && blog.points.length > 0 ? blog.points : [{
+              title: "",
+              description: "",
+              tagline: "",
+              subPoints: []
+            }],
+            url: blog.url || "",
+            metaDescription: blog.metaDescription || "",
+            tags: blog.tags || [],
+            publish: blog.publish || "published",
+            featured: blog.featured || false
           });
-          setBannerPreview({
-            desktop: data.desktopImage ? `http://localhost:5000${data.desktopImage}` : null,
-            mobile: data.mobileImage ? `http://localhost:5000${data.mobileImage}` : null,
+
+          // Set previews for existing images
+          setPreview({
+            bannerImage: blog.banner?.bannerImage ? getFullImageUrl(blog.banner.bannerImage) : null,
+            mobileBanner: blog.banner?.mobileBanner ? getFullImageUrl(blog.banner.mobileBanner) : null,
+            blogImage: blog.blogImage ? getFullImageUrl(blog.blogImage) : null
           });
+
+          setEditId(editBlogId);
+          setMessage("");
+        } catch (err) {
+          console.error("Error fetching blog for edit:", err);
+          setMessage("Error loading blog for edit: " + err.message);
         }
-      } catch (err) {
-        console.error("Error fetching banner:", err);
-      }
-    };
-    fetchBanner();
-  }, []);
-
-  const handleBannerChange = (e) => {
-    const { name, files } = e.target;
-    if (files && files[0]) {
-      setBanner({ ...banner, [name]: files[0] });
-      setBannerPreview({
-        ...bannerPreview,
-        [name === "desktopImage" ? "desktop" : "mobile"]: URL.createObjectURL(files[0]),
-      });
-    }
-  };
-
-  const handleBannerSubmit = async (e) => {
-    e.preventDefault();
-    setBannerLoading(true);
-
-    const formData = new FormData();
-    if (banner.desktopImage instanceof File) formData.append("desktopImage", banner.desktopImage);
-    if (banner.mobileImage instanceof File) formData.append("mobileImage", banner.mobileImage);
-
-    try {
-      const res = await fetch("http://localhost:5000/api/blogs/banner", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (res.ok) {
-        alert("Banner updated successfully!");
-      } else {
-        alert("Failed to update banner");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Error updating banner");
-    }
-    setBannerLoading(false);
-  };
-
-  const handleChange = (e, index = null, field = null) => {
-    const { name, value, files } = e.target;
-
-    if (index !== null && field !== null) {
-      const newPoints = [...form.points];
-      newPoints[index][field] = files && files[0] ? files[0] : value;
-      setForm({ ...form, points: newPoints });
-
-      if (files && files[0]) {
-        const newPreviewPoints = [...preview.points];
-        newPreviewPoints[index] = URL.createObjectURL(files[0]);
-        setPreview({ ...preview, points: newPreviewPoints });
-      }
+      };
+      
+      fetchBlogForEdit();
     } else {
-      if (files && files[0]) {
-        setForm({ ...form, [name]: files[0] });
-        setPreview({ ...preview, image: URL.createObjectURL(files[0]) });
-      } else {
-        setForm({ ...form, [name]: value });
-      }
+      // Reset form when not editing
+      setEditId(null);
+      setForm({
+        bannerTitle: "",
+        bannerSubtitle: "",
+        bannerImage: null,
+        mobileBanner: null,
+        mainTitle: "",
+        author: "",
+        blogDate: new Date().toISOString().split('T')[0],
+        blogImage: null,
+        blogDescription: "",
+        points: [{
+          title: "",
+          description: "",
+          tagline: "",
+          subPoints: []
+        }],
+        url: "",
+        metaDescription: "",
+        tags: [],
+        publish: "published",
+        featured: false
+      });
+      setPreview({
+        bannerImage: null,
+        mobileBanner: null,
+        blogImage: null
+      });
+    }
+  }, [editBlogId]);
+
+  // Handle main form changes
+  const handleChange = (e) => {
+    const { name, value, files, type, checked } = e.target;
+    
+    if (files && files[0]) {
+      setForm({ ...form, [name]: files[0] });
+      setPreview({ ...preview, [name]: URL.createObjectURL(files[0]) });
+    } else if (type === 'checkbox') {
+      setForm({ ...form, [name]: checked });
+    } else {
+      setForm({ ...form, [name]: value });
     }
   };
 
+  // Handle tags input (comma-separated)
+  const handleTagsChange = (e) => {
+    const tagsString = e.target.value;
+    // Split by comma and clean each tag thoroughly
+    const tags = tagsString.split(',')
+      .map(tag => {
+        let cleanTag = tag.trim();
+        // Remove any JSON-like formatting, quotes, brackets
+        cleanTag = cleanTag.replace(/^\[\"|\"\]$|^\[\'|\'\]$|^\"|\"|^\'|\'$|^\[|\]$/g, '');
+        cleanTag = cleanTag.replace(/\\"/g, '"'); // Handle escaped quotes
+        return cleanTag;
+      })
+      .filter(tag => tag && tag !== ''); // Remove empty tags
+    
+    setForm({ ...form, tags });
+  };
+
+  // Handle points changes
+  const handlePointChange = (pointIndex, field, value) => {
+    const newPoints = [...form.points];
+    newPoints[pointIndex][field] = value;
+    setForm({ ...form, points: newPoints });
+  };
+
+  // Handle sub-points changes
+  const handleSubPointChange = (pointIndex, subPointIndex, field, value) => {
+    const newPoints = [...form.points];
+    newPoints[pointIndex].subPoints[subPointIndex][field] = value;
+    setForm({ ...form, points: newPoints });
+  };
+
+  // Add new point
   const addPoint = () => {
     setForm({
       ...form,
-      points: [...form.points, { title: "", subtitle: "", image: null }],
+      points: [...form.points, { title: "", description: "", tagline: "", subPoints: [] }],
     });
-    setPreview({ ...preview, points: [...preview.points, null] });
   };
 
+  // Remove point
   const removePoint = (index) => {
     const newPoints = [...form.points];
     newPoints.splice(index, 1);
-    const newPreviewPoints = [...preview.points];
-    newPreviewPoints.splice(index, 1);
     setForm({ ...form, points: newPoints });
-    setPreview({ ...preview, points: newPreviewPoints });
   };
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  const formData = new FormData();
-
-  formData.append("alt", form.alt);
-  formData.append("publish", form.publish);
-  formData.append("date", form.date);
-  formData.append("url", form.url);
-  formData.append("title", form.title);
-  formData.append("desc", form.desc);
-
-  if (form.image instanceof File) formData.append("image", form.image);
-
-  // Points data without images
-  formData.append("points", JSON.stringify(
-    form.points.map((p) => ({ title: p.title, subtitle: p.subtitle }))
-  ));
-
-  // Points images
-  form.points.forEach((point, index) => {
-    if (point.image instanceof File) {
-      // Backend expects field name like `pointImages_0`, `pointImages_1`
-      formData.append(`pointImages_${index}`, point.image);
+  // Add sub-point to a specific point
+  const addSubPoint = (pointIndex) => {
+    const newPoints = [...form.points];
+    if (!newPoints[pointIndex].subPoints) {
+      newPoints[pointIndex].subPoints = [];
     }
-  });
+    newPoints[pointIndex].subPoints.push({ title: "", description: "", tagline: "" });
+    setForm({ ...form, points: newPoints });
+  };
 
-  try {
-    const res = await fetch("http://localhost:5000/api/blogs", {
-      method: "POST",
-      body: formData,
-    });
+  // Remove sub-point
+  const removeSubPoint = (pointIndex, subPointIndex) => {
+    const newPoints = [...form.points];
+    newPoints[pointIndex].subPoints.splice(subPointIndex, 1);
+    setForm({ ...form, points: newPoints });
+  };
 
-    if (res.ok) {
-      alert("Blog saved successfully!");
-      // Reset form
-      setForm({
-        id: "",
-        image: null,
-        alt: "",
-        publish: "",
-        date: "",
-        url: "",
-        title: "",
-        desc: "",
-        points: [{ title: "", subtitle: "", image: null }],
-      });
-      setPreview({ image: null, points: [null] });
-    } else {
-      const errorData = await res.json();
-      alert("Failed to save blog: " + errorData.error);
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage("");
+
+    try {
+      // Validate form data
+      const validation = validateBlogData(form);
+      if (!validation.isValid) {
+        setMessage("Validation errors: " + validation.errors.join(", "));
+        setLoading(false);
+        setTimeout(() => setMessage(""), 5000);
+        return;
+      }
+
+      // Prepare form data including banner information
+      const blogData = {
+        ...formatBlogData(form),
+        // Include banner data in the main blog creation/update
+        bannerTitle: form.bannerTitle,
+        bannerSubtitle: form.bannerSubtitle,
+        bannerImage: form.bannerImage,
+        mobileBanner: form.mobileBanner
+      };
+
+      let result;
+      if (editId) {
+        result = await updateBlog(editId, blogData);
+        setMessage("Blog updated successfully!");
+      } else {
+        result = await createBlog(blogData);
+        setMessage("Blog created successfully!");
+      }
+
+      // Reset form after successful save
+      if (!editId) { // Only reset if creating new blog, not editing
+        setForm({
+          bannerTitle: "",
+          bannerSubtitle: "",
+          bannerImage: null,
+          mobileBanner: null,
+          mainTitle: "",
+          author: "",
+          blogDate: new Date().toISOString().split('T')[0],
+          blogImage: null,
+          blogDescription: "",
+          points: [{
+            title: "",
+            description: "",
+            tagline: "",
+            subPoints: []
+          }],
+          url: "",
+          metaDescription: "",
+          tags: [],
+          publish: "draft", // Default back to draft with filter system
+          featured: false
+        });
+
+        setPreview({
+          bannerImage: null,
+          mobileBanner: null,
+          blogImage: null
+        });
+      }
+
+      setEditId(null);
+      setTimeout(() => setMessage(""), 3000);
+
+      // Trigger refresh in parent component
+      if (onSaved) {
+        onSaved();
+      }
+
+      // Call cancel edit to reset form in parent
+      if (onCancelEdit && editId) {
+        onCancelEdit();
+      }
+
+    } catch (err) {
+      console.error(err);
+      setMessage("Error saving blog: " + err.message);
+      setTimeout(() => setMessage(""), 5000);
     }
-  } catch (err) {
-    console.error(err);
-    alert("Error submitting blog: " + err.message);
-  }
-};
+    setLoading(false);
+  };
   return (
-    <div className="space-y-10">
-      {/* Banner Form */}
+    <div className="space-y-10 max-w-4xl mx-auto p-6">
+      {/* Success/Error Message */}
+      {message && (
+        <div className={`p-4 rounded-lg ${message.includes('Error') || message.includes('Validation') 
+          ? 'bg-red-100 text-red-700 border border-red-300' 
+          : 'bg-green-100 text-green-700 border border-green-300'}`}>
+          {message}
+        </div>
+      )}
+
+      {/* Main Blog Form (including banner) */}
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-4">Blogs Banner</h2>
-        <form onSubmit={handleBannerSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label className="font-medium block mb-1">Desktop Banner:</label>
-              <input
-                type="file"
-                name="desktopImage"
-                accept="image/*"
-                onChange={handleBannerChange}
-                className="w-full border p-2 rounded"
-              />
-              {bannerPreview.desktop && (
-                <img
-                  src={bannerPreview.desktop}
-                  alt="Desktop"
-                  className="mt-2 h-40 w-full rounded object-cover"
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">
+          {editId ? "Edit Blog" : "Create New Blog"}
+        </h2>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Banner Section */}
+          <div className="border border-gray-200 p-6 rounded-lg bg-gray-50">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">Blog Banner Section</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Banner Title */}
+              <div className="md:col-span-2">
+                <label className="block font-medium text-gray-700 mb-2">Banner Title:</label>
+                <input
+                  type="text"
+                  name="bannerTitle"
+                  value={form.bannerTitle}
+                  onChange={handleChange}
+                  placeholder="Enter banner title"
+                  className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-              )}
-            </div>
-            <div>
-              <label className="font-medium block mb-1">Mobile Banner:</label>
-              <input
-                type="file"
-                name="mobileImage"
-                accept="image/*"
-                onChange={handleBannerChange}
-                className="w-full border p-2 rounded"
-              />
-              {bannerPreview.mobile && (
-                <img
-                  src={bannerPreview.mobile}
-                  alt="Mobile"
-                  className="mt-2 h-40 w-full rounded object-cover"
+              </div>
+
+              {/* Banner Subtitle */}
+              <div className="md:col-span-2">
+                <label className="block font-medium text-gray-700 mb-2">Banner Subtitle:</label>
+                <input
+                  type="text"
+                  name="bannerSubtitle"
+                  value={form.bannerSubtitle}
+                  onChange={handleChange}
+                  placeholder="Enter banner subtitle"
+                  className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-              )}
+              </div>
+
+              {/* Desktop Banner */}
+              <div>
+                <label className="block font-medium text-gray-700 mb-2">Desktop Banner Image:</label>
+                <input
+                  type="file"
+                  name="bannerImage"
+                  accept="image/*"
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 p-3 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                {preview.bannerImage && (
+                  <div className="mt-3">
+                    <img
+                      src={preview.bannerImage}
+                      alt="Desktop Banner Preview"
+                      className="w-full h-40 rounded-lg object-cover border border-gray-200"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Banner */}
+              <div>
+                <label className="block font-medium text-gray-700 mb-2">Mobile Banner Image:</label>
+                <input
+                  type="file"
+                  name="mobileBanner"
+                  accept="image/*"
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 p-3 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                {preview.mobileBanner && (
+                  <div className="mt-3">
+                    <img
+                      src={preview.mobileBanner}
+                      alt="Mobile Banner Preview"
+                      className="w-full h-40 rounded-lg object-cover border border-gray-200"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-          <button
-            type="submit"
-            disabled={bannerLoading}
-            className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-          >
-            {bannerLoading ? "Saving..." : "Save Banner"}
-          </button>
-        </form>
-      </div>
-
-      {/* Blog Form */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-4">Add Blog</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* <input
-            type="number"
-            name="id"
-            value={form.id}
-            onChange={handleChange}
-            placeholder="ID"
-            className="w-full border p-2 rounded"
-          /> */}
-           <input
-            type="text"
-            name="alt"
-            value={form.alt}
-            onChange={handleChange}
-            placeholder="Alt Text"
-            className="w-full border p-2 rounded"
-          />
-          <textarea
-            name="publish"
-            value={form.publish}  
-            onChange={handleChange}
-            placeholder="Publish"
-            className="w-full border p-2 rounded"
-          />
+          {/* Main Title */}
           <div>
-            <label className="font-medium block mb-1">Main Image:</label>
+            <label className="block font-medium text-gray-700 mb-2">Main Title <span className="text-red-500">*</span>:</label>
+            <input
+              type="text"
+              name="mainTitle"
+              value={form.mainTitle}
+              onChange={handleChange}
+              placeholder="Enter blog main title"
+              required
+              className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Author and Date */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block font-medium text-gray-700 mb-2">Author <span className="text-red-500">*</span>:</label>
+              <input
+                type="text"
+                name="author"
+                value={form.author}
+                onChange={handleChange}
+                placeholder="Enter author name"
+                required
+                className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block font-medium text-gray-700 mb-2">Blog Date <span className="text-red-500">*</span>:</label>
+              <input
+                type="date"
+                name="blogDate"
+                value={form.blogDate}
+                onChange={handleChange}
+                required
+                className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          {/* Blog Main Image */}
+          <div>
+            <label className="block font-medium text-gray-700 mb-2">Blog Main Image:</label>
             <input
               type="file"
-              name="image"
+              name="blogImage"
               accept="image/*"
               onChange={handleChange}
-              className="w-full border p-2 rounded"
+              className="w-full border border-gray-300 p-3 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             />
-            {preview.image && (
-              <img
-                src={preview.image}
-                alt="Preview"
-                className="mt-2 h-40 w-full rounded object-cover"
-              />
+            {preview.blogImage && (
+              <div className="mt-3">
+                <img
+                  src={preview.blogImage}
+                  alt="Blog Image Preview"
+                  className="w-full h-48 rounded-lg object-cover border border-gray-200"
+                />
+              </div>
             )}
           </div>
 
-        
-          
-          <input
-            type="date"
-            name="date"
-            value={form.date}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-          />
-          <input
-            type="text"
-            name="url"
-            value={form.url}
-            onChange={handleChange}
-            placeholder="URL"
-            className="w-full border p-2 rounded"
-          />
-          <input
-            type="text"
-            name="title"
-            value={form.title}
-            onChange={handleChange}
-            placeholder="Title"
-            className="w-full border p-2 rounded"
-          />
-          <textarea
-            name="desc"
-            value={form.desc}
-            onChange={handleChange}
-            placeholder="Description"
-            className="w-full border p-2 rounded"
-          />
-
-          {/* Points */}
-          <div className="space-y-6">
-            <h3 className="text-xl font-semibold">Points</h3>
-            {form.points.map((point, index) => (
-              <div key={index} className="border p-4 rounded-lg space-y-3 bg-gray-50">
-                <input
-                  type="text"
-                  value={point.title}
-                  placeholder={`Point #${index + 1} Title`}
-                  className="w-full border p-2 rounded"
-                  onChange={(e) => handleChange(e, index, "title")}
-                />
-                <textarea
-                  value={point.subtitle}
-                  placeholder={`Point #${index + 1} Subtitle`}
-                  className="w-full border p-2 rounded"
-                  onChange={(e) => handleChange(e, index, "subtitle")}
-                />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleChange(e, index, "image")}
-                />
-                {preview.points[index] && (
-                  <img
-                    src={preview.points[index]}
-                    alt={`Point ${index + 1} Preview`}
-                    className="mt-2 h-32 rounded object-cover"
-                  />
-                )}
-                {form.points.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removePoint(index)}
-                    className="text-red-600 hover:underline"
-                  >
-                    Remove Point
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={addPoint}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-            >
-              Add Point
-            </button>
+          {/* Blog Description */}
+          <div>
+            <label className="block font-medium text-gray-700 mb-2">Blog Description <span className="text-red-500">*</span>:</label>
+            <textarea
+              name="blogDescription"
+              value={form.blogDescription}
+              onChange={handleChange}
+              placeholder="Enter blog description"
+              required
+              rows={4}
+              className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
           </div>
 
-          <button
-            type="submit"
-            className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-          >
-            Save Blog
-          </button>
+          {/* URL and Meta Description */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block font-medium text-gray-700 mb-2">URL Slug:</label>
+              <input
+                type="text"
+                name="url"
+                value={form.url}
+                onChange={handleChange}
+                placeholder="blog-url-slug"
+                className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block font-medium text-gray-700 mb-2">Meta Description:</label>
+              <input
+                type="text"
+                name="metaDescription"
+                value={form.metaDescription}
+                onChange={handleChange}
+                placeholder="SEO meta description"
+                className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          {/* Tags */}
+          <div>
+            <label className="block font-medium text-gray-700 mb-2">Tags (comma-separated):</label>
+            <input
+              type="text"
+              value={form.tags.join(', ')}
+              onChange={handleTagsChange}
+              placeholder="real estate, property, investment"
+              className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Publish Status and Featured */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block font-medium text-gray-700 mb-2">Publish Status:</label>
+              <select
+                name="publish"
+                value={form.publish}
+                onChange={handleChange}
+                className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+              </select>
+            </div>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                name="featured"
+                checked={form.featured}
+                onChange={handleChange}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label className="ml-2 font-medium text-gray-700">Featured Blog</label>
+            </div>
+          </div>
+
+          {/* Points Section */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-semibold text-gray-800">Blog Points</h3>
+              <button
+                type="button"
+                onClick={addPoint}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200"
+              >
+                Add Point
+              </button>
+            </div>
+
+            {form.points.map((point, pointIndex) => (
+              <div key={pointIndex} className="border border-gray-200 p-6 rounded-lg bg-gray-50 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-lg font-medium text-gray-800">Point #{pointIndex + 1}</h4>
+                  {form.points.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removePoint(pointIndex)}
+                      className="text-red-600 hover:text-red-800 font-medium"
+                    >
+                      Remove Point
+                    </button>
+                  )}
+                </div>
+
+                {/* Point Title */}
+                <div>
+                  <label className="block font-medium text-gray-700 mb-2">Point Title:</label>
+                  <input
+                    type="text"
+                    value={point.title}
+                    onChange={(e) => handlePointChange(pointIndex, 'title', e.target.value)}
+                    placeholder="Enter point title"
+                    className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                {/* Point Description */}
+                <div>
+                  <label className="block font-medium text-gray-700 mb-2">Point Description:</label>
+                  <textarea
+                    value={point.description}
+                    onChange={(e) => handlePointChange(pointIndex, 'description', e.target.value)}
+                    placeholder="Enter point description"
+                    rows={3}
+                    className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                {/* Point Tagline */}
+                <div>
+                  <label className="block font-medium text-gray-700 mb-2">Point Tagline:</label>
+                  <input
+                    type="text"
+                    value={point.tagline}
+                    onChange={(e) => handlePointChange(pointIndex, 'tagline', e.target.value)}
+                    placeholder="Enter point tagline"
+                    className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                {/* Sub-points */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-md font-medium text-gray-700">Sub-points</h5>
+                    <button
+                      type="button"
+                      onClick={() => addSubPoint(pointIndex)}
+                      className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition duration-200"
+                    >
+                      Add Sub-point
+                    </button>
+                  </div>
+
+                  {point.subPoints && point.subPoints.map((subPoint, subPointIndex) => (
+                    <div key={subPointIndex} className="border border-gray-300 p-4 rounded bg-white space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h6 className="text-sm font-medium text-gray-600">Sub-point #{subPointIndex + 1}</h6>
+                        <button
+                          type="button"
+                          onClick={() => removeSubPoint(pointIndex, subPointIndex)}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          Remove
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Title:</label>
+                          <input
+                            type="text"
+                            value={subPoint.title}
+                            onChange={(e) => handleSubPointChange(pointIndex, subPointIndex, 'title', e.target.value)}
+                            placeholder="Sub-point title"
+                            className="w-full border border-gray-300 p-2 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Description:</label>
+                          <input
+                            type="text"
+                            value={subPoint.description}
+                            onChange={(e) => handleSubPointChange(pointIndex, subPointIndex, 'description', e.target.value)}
+                            placeholder="Sub-point description"
+                            className="w-full border border-gray-300 p-2 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Tagline:</label>
+                          <input
+                            type="text"
+                            value={subPoint.tagline}
+                            onChange={(e) => handleSubPointChange(pointIndex, subPointIndex, 'tagline', e.target.value)}
+                            placeholder="Sub-point tagline"
+                            className="w-full border border-gray-300 p-2 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Submit Button */}
+          <div className="flex items-center gap-4">
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-8 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200 font-medium"
+            >
+              {loading ? "Saving..." : editId ? "Update Blog" : "Create Blog"}
+            </button>
+            
+            {editId && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onCancelEdit) {
+                    onCancelEdit();
+                  } else {
+                    setEditId(null);
+                    setForm({
+                      bannerTitle: "",
+                      bannerSubtitle: "",
+                      bannerImage: null,
+                      mobileBanner: null,
+                      mainTitle: "",
+                      author: "",
+                      blogDate: new Date().toISOString().split('T')[0],
+                      blogImage: null,
+                      blogDescription: "",
+                      points: [{
+                        title: "",
+                        description: "",
+                        tagline: "",
+                        subPoints: []
+                      }],
+                      url: "",
+                      metaDescription: "",
+                      tags: [],
+                      publish: "published",
+                      featured: false
+                    });
+                    setPreview({
+                      bannerImage: null,
+                      mobileBanner: null,
+                      blogImage: null
+                    });
+                  }
+                }}
+                className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200 font-medium"
+              >
+                Cancel Edit
+              </button>
+            )}
+          </div>
         </form>
       </div>
     </div>

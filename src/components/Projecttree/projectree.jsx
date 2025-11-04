@@ -19,6 +19,7 @@ const AdminProjectTree = () => {
     title: "",
     location: "",
     type: "",
+    projectNumber: "",
     image: null,
   });
   const [editId, setEditId] = useState(null);
@@ -61,7 +62,7 @@ const AdminProjectTree = () => {
     } else {
       await createProjectNode(form);
     }
-    setForm({ year: "", title: "", location: "", type: "", image: null });
+    setForm({ year: "", title: "", location: "", type: "", projectNumber: "", image: null });
     setPreview("");
     fetchProjects();
   };
@@ -73,6 +74,7 @@ const AdminProjectTree = () => {
       title: p.title,
       location: p.location,
       type: p.type,
+      projectNumber: p.projectNumber || "",
       image: null,
     });
     setPreview(p.image || "");
@@ -188,6 +190,13 @@ const AdminProjectTree = () => {
           placeholder="Type"
           required
         />
+        <input
+          name="projectNumber"
+          value={form.projectNumber}
+          onChange={handleChange}
+          placeholder="Project Number"
+          required
+        />
 
         <input type="file" name="image" accept="image/*" onChange={handleChange} />
 
@@ -227,6 +236,7 @@ const AdminProjectTree = () => {
                     <p className="font-semibold">{p.title}</p>
                     <p className="text-sm">{p.location}</p>
                     <p className="text-xs text-gray-500">{p.type}</p>
+                    <p className="text-xs text-blue-600">Project #: {p.projectNumber}</p>
                   </div>
                   <div className="flex gap-2">
                     <button
